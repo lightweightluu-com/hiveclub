@@ -29,12 +29,15 @@ export type ClubEvent = {
   tag: string;
   blurb: string;
   badge?: string;
+  /** Nur belegte Fakten aus der Eventbeschreibung. */
+  tags: string[];
   featured?: boolean;
 };
 
 export const EVENTS: ClubEvent[] = [
   {
     id: 'dihive-staatsparty',
+    tags: ['dihive', 'Residents'],
     title: 'dihive × Staatsparty',
     start: '2026-10-22T22:00:00+02:00',
     timeLabel: 'ab 22:00',
@@ -45,6 +48,7 @@ export const EVENTS: ClubEvent[] = [
   },
   {
     id: 'sync-hive',
+    tags: ['Yoga', 'wildpeakthythm'],
     title: 'Sync@Hive',
     start: '2026-10-22T18:30:00+02:00',
     timeLabel: '18:30',
@@ -54,6 +58,7 @@ export const EVENTS: ClubEvent[] = [
   },
   {
     id: 'shut-up-and-dance',
+    tags: ['Durchgehend tanzen'],
     title: 'Shut Up And Dance',
     start: '2026-10-22T20:00:00+02:00',
     timeLabel: '20:00 pünktlich',
@@ -63,6 +68,7 @@ export const EVENTS: ClubEvent[] = [
   },
   {
     id: 'kiki',
+    tags: ['2 Dancefloors'],
     title: 'Kiki',
     start: '2026-10-23T23:00:00+02:00',
     timeLabel: 'ab 23:00',
@@ -72,6 +78,7 @@ export const EVENTS: ClubEvent[] = [
   },
   {
     id: 'denis-horvat-lazare',
+    tags: ['Innervisions', 'Afterlife', 'Diynamic'],
     title: 'Denis Horvat × Lazare',
     start: '2026-10-24T23:00:00+02:00',
     timeLabel: 'ab 23:00',

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { ExternalLink, MapPin, Navigation, Phone } from 'lucide-react';
-import { ADDRESS, HOURS, RULES } from '@/data/club';
+import { ExternalLink, MapPin, Music2, Navigation, Phone } from 'lucide-react';
+import { ADDRESS, HOURS, RULES, SOCIALS } from '@/data/club';
+import { Facebook, Instagram } from '@/components/BrandIcons';
 import { GlowCard } from '@/components/magic/glow-card';
 import { Reveal } from '@/components/magic/text-reveal';
 import { SectionHead } from '@/components/SectionHead';
@@ -70,6 +71,18 @@ export function Info() {
                 <Button asChild size="sm"><a href={ADDRESS.map} target="_blank" rel="noreferrer noopener"><Navigation /> Route</a></Button>
                 <Button asChild size="sm" variant="outline"><a href={ADDRESS.phoneHref}><Phone /> {ADDRESS.phone}</a></Button>
               </div>
+              <ul className="mt-5 flex flex-wrap gap-2 border-t border-line pt-5">
+                {SOCIALS.map((s) => {
+                  const Icon = s.id === 'instagram' ? Instagram : s.id === 'facebook' ? Facebook : Music2;
+                  return (
+                    <li key={s.id}>
+                      <a href={s.href} target="_blank" rel="noreferrer noopener" className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line px-4 text-sm font-bold transition-colors hover:border-accent-text hover:text-accent-text">
+                        <Icon className="size-4" /> {s.label}
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
             </GlowCard>
           </Reveal>
         </div>
