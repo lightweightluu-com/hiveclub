@@ -20,7 +20,7 @@ export function Hero() {
   const ev = nextEvent();
 
   return (
-    <section id="top" className="grain relative isolate flex min-h-[100svh] flex-col overflow-hidden">
+    <section id="top" className="relative isolate flex min-h-[100svh] flex-col overflow-hidden">
       <Aurora />
       <HexField />
       <LightBeams />
@@ -35,40 +35,34 @@ export function Hero() {
       <div aria-hidden className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,var(--bg)_85%)]" />
 
       <div className="relative mx-auto flex w-full max-w-7xl flex-1 flex-col justify-center px-4 pb-44 pt-24 sm:px-6">
-        <motion.p
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="mb-4 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.3em] text-accent-text sm:text-sm"
+        <p
+          style={{ ['--d' as string]: '0.1s' }}
+          className="hero-in mb-4 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.3em] text-accent-text sm:text-sm"
         >
           <MapPin className="size-4" /> Zürich West · Geroldstrasse 5
-        </motion.p>
+        </p>
 
         <h1 className="text-display text-[clamp(5rem,min(28vw,24vh),16rem)] text-fg">
-          <TextReveal text="HIVE" delay={0.35} />
-          <span className="block bg-gradient-to-r from-accent via-violet to-blue bg-clip-text text-[clamp(1.05rem,5.6vw,3.75rem)] tracking-[-0.02em] text-transparent">
-            <TextReveal text="Morphing Clubbing" delay={0.8} />
+          <TextReveal text="HIVE" delay={0.15} />
+          <span className="block text-[clamp(1.05rem,5.6vw,3.75rem)] tracking-[-0.02em] text-accent-text">
+            <TextReveal text="Morphing Clubbing" delay={0.4} />
           </span>
         </h1>
 
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.3 }}
-          className="mt-6 max-w-xl text-lg text-muted sm:text-xl"
+        <p
+          style={{ ['--d' as string]: '0.7s' }}
+          className="hero-in mt-6 max-w-xl text-lg text-muted sm:text-xl"
         >
           Elektro, Techno, Techhouse und Deep House in Zürich West.
-        </motion.p>
+        </p>
 
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.5, duration: 0.6 }}
-          className="mt-8 flex flex-col gap-6 lg:flex-row lg:items-end"
+        <div
+          style={{ ['--d' as string]: '0.85s' }}
+          className="hero-in mt-8 flex flex-col gap-6 lg:flex-row lg:items-end"
         >
           <a
             href="#programm"
-            className="group block w-full max-w-md rounded-3xl border border-line bg-surface/60 p-5 backdrop-blur-xl transition-colors hover:border-accent-text"
+            className="group block w-full max-w-md rounded-3xl border border-line bg-surface/85 p-5 transition-colors hover:border-accent-text"
           >
             <p className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-accent-text">
               <span className="relative flex size-2"><span className="absolute inline-flex size-full animate-ping rounded-full bg-accent opacity-75" /><span className="relative inline-flex size-2 rounded-full bg-accent" /></span>
@@ -93,10 +87,10 @@ export function Hero() {
             <Button asChild><a href="#programm"><CalendarDays /> Programm</a></Button>
             <Button asChild variant="outline"><a href="#info"><MapPin /> Anfahrt</a></Button>
           </div>
-        </motion.div>
+        </div>
       </div>
 
-      <div className="absolute inset-x-0 bottom-0 border-y border-line bg-bg/60 py-3 backdrop-blur">
+      <div className="absolute inset-x-0 bottom-0 border-y border-line bg-bg/80 py-3">
         <Marquee duration={30}>
           {['Techno', 'House', 'Techhouse', 'Deep House', 'Elektro', 'Morphing Clubbing', 'Do · Fr · Sa'].map((w) => (
             <span key={w} className="flex items-center gap-8 pr-8 font-display font-black text-2xl uppercase tracking-tight text-fg/80">

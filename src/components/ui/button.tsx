@@ -9,7 +9,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: 'bg-accent text-accent-fg hover:shadow-[0_0_32px_-4px_var(--accent)]',
-        outline: 'border border-line bg-surface/40 text-fg backdrop-blur hover:border-accent-text hover:text-accent-text',
+        outline: 'border border-line bg-surface/40 text-fg hover:border-accent-text hover:text-accent-text',
         ghost: 'text-fg hover:bg-surface-2'
       },
       size: { default: 'h-12 px-6', sm: 'h-10 px-4 text-xs', icon: 'size-11' }

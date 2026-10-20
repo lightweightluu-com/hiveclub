@@ -13,30 +13,26 @@ export function TextReveal({
   delay?: number;
   as?: 'span' | 'h1' | 'h2';
 }) {
-  const M = motion[Tag];
   return (
-    <M className={cn('inline-flex flex-wrap', className)} aria-label={text}>
+    <Tag className={cn('inline-flex flex-wrap', className)} aria-label={text}>
       {text.split(' ').map((word, w, words) => {
         const offset = words.slice(0, w).join(' ').length + (w ? 1 : 0);
         return (
           <span key={w} aria-hidden className="inline-flex whitespace-nowrap">
             {Array.from(word).map((ch, i) => (
-              <span key={i} className="inline-block overflow-hidden pb-[0.08em]">
-                <motion.span
-                  className="inline-block"
-                  initial={{ y: '110%', rotate: 6 }}
-                  animate={{ y: 0, rotate: 0 }}
-                  transition={{ duration: 0.7, delay: delay + (offset + i) * 0.05, ease: [0.2, 0.8, 0.2, 1] }}
-                >
-                  {ch}
-                </motion.span>
+              <span
+                key={i}
+                className="letter-in"
+                style={{ ['--d' as string]: `${delay}s`, ['--i' as string]: offset + i }}
+              >
+                {ch}
               </span>
             ))}
             {w < words.length - 1 && <span className="inline-block w-[0.3em]" />}
           </span>
         );
       })}
-    </M>
+    </Tag>
   );
 }
 

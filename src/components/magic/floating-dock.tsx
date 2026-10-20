@@ -39,10 +39,7 @@ export function FloatingDock({ items }: { items: DockItem[] }) {
       <motion.div
         onMouseMove={(e) => mouseX.set(e.clientX)}
         onMouseLeave={() => mouseX.set(Infinity)}
-        initial={{ y: 80, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 1.4, type: 'spring', stiffness: 200, damping: 22 }}
-        className="pointer-events-auto flex h-[72px] items-end gap-3 rounded-full border border-line bg-bg/70 px-3 pb-3 backdrop-blur-xl"
+        className="dock-in pointer-events-auto flex h-[72px] items-end gap-3 rounded-full border border-line bg-bg/90 px-3 pb-3 shadow-lg"
       >
         {items.map((it) => (
           <DockIcon key={it.id} mouseX={mouseX} item={it} />

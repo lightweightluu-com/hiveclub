@@ -21,7 +21,7 @@ export function ThemeToggle() {
       type="button"
       onClick={() => setTheme(dark ? 'light' : 'dark')}
       aria-label={dark ? 'Hellen Modus aktivieren' : 'Dunklen Modus aktivieren'}
-      className="grid size-11 place-items-center rounded-full border border-line bg-surface/60 backdrop-blur transition-colors hover:border-accent-text hover:text-accent-text"
+      className="grid size-11 place-items-center rounded-full border border-line bg-surface/60 transition-colors hover:border-accent-text hover:text-accent-text"
     >
       {dark ? <Sun className="size-5" /> : <Moon className="size-5" />}
     </button>

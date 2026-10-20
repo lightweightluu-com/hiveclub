@@ -48,7 +48,7 @@ export function Header() {
         <Sheet>
           <SheetTrigger
             aria-label="Menü öffnen"
-            className="grid size-11 place-items-center rounded-full border border-line bg-surface/60 backdrop-blur transition-colors hover:border-accent-text xl:hidden"
+            className="grid size-11 place-items-center rounded-full border border-line bg-surface/80 transition-colors hover:border-accent-text xl:hidden"
           >
             <Menu className="size-5" />
           </SheetTrigger>
