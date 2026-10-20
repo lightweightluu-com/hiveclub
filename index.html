@@ -15,7 +15,7 @@
       try {
         var t = localStorage.getItem('theme') === 'light' ? 'light' : 'dark';
         document.documentElement.dataset.theme = t;
-        document.querySelector('meta[name="theme-color"]').content = t === 'dark' ? '#0d0b09' : '#f5f2ec';
+        document.querySelector('meta[name="theme-color"]').content = t === 'dark' ? '#0b0a09' : '#f5f2ec';
       } catch (e) { document.documentElement.dataset.theme = 'dark'; }
     </script>
     <title>Hive Club Zürich</title>
