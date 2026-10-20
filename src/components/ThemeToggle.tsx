@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Moon, Sun } from 'lucide-react';
 
 type Theme = 'light' | 'dark';
-const COLORS: Record<Theme, string> = { light: '#f5f2ec', dark: '#07070a' };
+const COLORS: Record<Theme, string> = { light: '#f5f2ec', dark: '#0d0b09' };
 
 export function ThemeToggle() {
   const [theme, setTheme] = useState<Theme>(() =>
