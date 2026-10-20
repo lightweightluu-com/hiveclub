@@ -1,6 +1,5 @@
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ArrowDown, CalendarDays, MapPin } from 'lucide-react';
-import { useRef } from 'react';
 import { EVENTS } from '@/data/club';
 import { Aurora } from '@/components/magic/aurora';
 import { HexField } from '@/components/magic/hex-field';
@@ -18,14 +17,10 @@ export function nextEvent(now = Date.now()) {
 }
 
 export function Hero() {
-  const ref = useRef<HTMLElement>(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
-  const y = useTransform(scrollYProgress, [0, 1], ['0%', '25%']);
-  const fade = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
   const ev = nextEvent();
 
   return (
-    <section id="top" ref={ref} className="grain relative isolate flex min-h-[100svh] flex-col overflow-hidden">
+    <section id="top" className="grain relative isolate flex min-h-[100svh] flex-col overflow-hidden">
       <Aurora />
       <HexField />
       <LightBeams />
@@ -39,7 +34,7 @@ export function Hero() {
       </motion.div>
       <div aria-hidden className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,var(--bg)_85%)]" />
 
-      <motion.div style={{ y, opacity: fade }} className="relative mx-auto flex w-full max-w-7xl flex-1 flex-col justify-center px-4 pb-44 pt-24 sm:px-6">
+      <div className="relative mx-auto flex w-full max-w-7xl flex-1 flex-col justify-center px-4 pb-44 pt-24 sm:px-6">
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -99,7 +94,7 @@ export function Hero() {
             <Button asChild variant="outline"><a href="#info"><MapPin /> Anfahrt</a></Button>
           </div>
         </motion.div>
-      </motion.div>
+      </div>
 
       <div className="absolute inset-x-0 bottom-0 border-y border-line bg-bg/60 py-3 backdrop-blur">
         <Marquee duration={30}>
