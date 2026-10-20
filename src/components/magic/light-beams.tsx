@@ -21,8 +21,7 @@ export function LightBeams({ className }: { className?: string }) {
             height: b.h,
             animationDelay: b.delay,
             transform: `rotate(${b.rot}deg)`,
-            background: 'linear-gradient(to bottom, var(--accent), transparent)',
-            boxShadow: '0 0 18px 2px color-mix(in srgb, var(--accent) 45%, transparent)'
+            background: 'linear-gradient(to bottom, var(--accent), transparent)'
           }}
         />
       ))}

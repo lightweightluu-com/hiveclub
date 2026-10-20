@@ -92,7 +92,7 @@ body {
 
 .text-display { font-family: var(--font-display); font-weight: 900; text-transform: uppercase; letter-spacing: -0.04em; line-height: 0.86; }
 .grain::after {
-  content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0.08; mix-blend-mode: overlay;
+  content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0.035;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
 }
 .pb-safe { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
@@ -108,3 +108,10 @@ body {
 @keyframes fade-out { to { opacity: 0; } }
 @keyframes slide-in { from { transform: translateX(100%); } }
 @keyframes slide-out { to { transform: translateX(100%); } }
+
+/* Eintritts-Animationen rein in CSS: laufen ohne JS-Frameloop und bleiben nie unsichtbar hängen. */
+@keyframes rise { from { opacity: 0; transform: translateY(0.35em); } }
+@keyframes rise-sm { from { opacity: 0; transform: translateY(12px); } }
+.hero-in { animation: rise-sm 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; animation-delay: var(--d, 0s); }
+.letter-in { display: inline-block; animation: rise 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; animation-delay: calc(var(--d, 0s) + var(--i, 0) * 35ms); }
+.dock-in { animation: rise-sm 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) 0.6s backwards; }
