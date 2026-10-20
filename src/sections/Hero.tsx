@@ -62,7 +62,7 @@ export function Hero() {
           transition={{ delay: 1.3 }}
           className="mt-6 max-w-xl text-lg text-muted sm:text-xl"
         >
-          Elektro, Techno, Techhouse und Deep House – in einem Club, der sich jede Nacht neu erfindet.
+          Elektro, Techno, Techhouse und Deep House in Zürich West.
         </motion.p>
 
         <motion.div

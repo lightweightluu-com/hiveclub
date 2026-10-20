@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ExternalLink, MapPin, Navigation, Phone, TrainFront } from 'lucide-react';
+import { ExternalLink, MapPin, Navigation, Phone } from 'lucide-react';
 import { ADDRESS, HOURS, RULES } from '@/data/club';
 import { GlowCard } from '@/components/magic/glow-card';
 import { Reveal } from '@/components/magic/text-reveal';
@@ -18,10 +18,10 @@ function zurichNow() {
 /** Öffnungszeiten laufen über Mitternacht: Do 23:00 bis Fr 04:00 etc. */
 function openToday(): number | null {
   const { dow, min } = zurichNow();
-  const lens = { 4: 5 * 60, 5: 8 * 60, 6: 10 * 60 } as Record<number, number>; // Stunden nach Mitternacht
-  if (lens[dow] !== undefined && min >= 23 * 60) return dow;
+  const ends = { 4: 4 * 60, 5: 7 * 60, 6: 9 * 60 } as Record<number, number>; // Ende am Folgetag, Minuten nach Mitternacht
+  if (ends[dow] !== undefined && min >= 23 * 60) return dow;
   const prev = (dow + 6) % 7;
-  if (lens[prev] !== undefined && min < lens[prev] - 60) return prev;
+  if (ends[prev] !== undefined && min < ends[prev]) return prev;
   return null;
 }
 
@@ -70,7 +70,6 @@ export function Info() {
                 <Button asChild size="sm"><a href={ADDRESS.map} target="_blank" rel="noreferrer noopener"><Navigation /> Route</a></Button>
                 <Button asChild size="sm" variant="outline"><a href={ADDRESS.phoneHref}><Phone /> {ADDRESS.phone}</a></Button>
               </div>
-              <p className="mt-5 flex items-start gap-2 text-sm text-muted"><TrainFront className="mt-0.5 size-4 shrink-0 text-accent-text" aria-hidden /> Zürich West, zu Fuss ab Bahnhof Hardbrücke erreichbar.</p>
             </GlowCard>
           </Reveal>
         </div>

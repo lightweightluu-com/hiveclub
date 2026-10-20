@@ -51,7 +51,7 @@ export function Community() {
               <p className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.3em] text-accent-text"><Key className="size-4" /> Raumvermietung</p>
               <h2 className="text-display text-[clamp(2.2rem,7vw,4.5rem)]">Das Hive gehört dir.</h2>
               <p className="mt-4 max-w-xl text-lg text-muted">
-                Mieten kannst du das Hive privat oder als Firma – für Geburtstage, Firmenanlässe, Launches oder deine eigene Nacht.
+                Das Hive kann privat oder als Firma gemietet werden.
               </p>
             </div>
             <div className="flex flex-col gap-3 lg:items-end">
