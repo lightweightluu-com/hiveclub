@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Loader2, Mail } from 'lucide-react';
+import { AlertCircle, Check, Loader2, Mail } from 'lucide-react';
 import { SITE } from '@/data/club';
 import { Reveal } from '@/components/magic/text-reveal';
 import { Button } from '@/components/ui/button';
@@ -14,15 +14,33 @@ export function Newsletter() {
   const [state, setState] = useState<State>('idle');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const d = Object.fromEntries(new FormData(e.currentTarget)) as Record<string, string>;
+  const check = (d: Record<string, string>) => {
     const next: Record<string, string> = {};
     if (!d.firstName?.trim()) next.firstName = 'Bitte Vornamen eingeben.';
     if (!d.lastName?.trim()) next.lastName = 'Bitte Nachnamen eingeben.';
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(d.email ?? '')) next.email = 'Bitte gültige E-Mail-Adresse eingeben.';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(d.email ?? '')) next.email = 'Bitte gültige E-Mail-Adresse eingeben, z. B. name@mail.ch.';
+    return next;
+  };
+
+  /** Beim Verlassen validieren; steht ein Fehler, verschwindet er live beim Tippen. */
+  function validateField(form: HTMLFormElement, name: string, onlyIfError = false) {
+    if (onlyIfError && !errors[name]) return;
+    const msg = check(Object.fromEntries(new FormData(form)) as Record<string, string>)[name];
+    setErrors((prev) => {
+      const { [name]: _drop, ...rest } = prev;
+      return msg ? { ...rest, [name]: msg } : rest;
+    });
+  }
+
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const d = Object.fromEntries(new FormData(e.currentTarget)) as Record<string, string>;
+    const next = check(d);
     setErrors(next);
-    if (Object.keys(next).length) return;
+    if (Object.keys(next).length) {
+      e.currentTarget.querySelector<HTMLInputElement>('[aria-invalid=true]')?.focus();
+      return;
+    }
     if (!ENDPOINT) return setState('error');
     setState('loading');
     try {
@@ -54,18 +72,18 @@ export function Newsletter() {
                     <p className="text-muted">Deine Anmeldung ist eingegangen.</p>
                   </motion.div>
                 ) : (
-                  <motion.form key="form" onSubmit={onSubmit} noValidate exit={{ opacity: 0 }} className="grid gap-4 sm:grid-cols-2">
+                  <motion.form key="form" onSubmit={onSubmit} onBlur={(e) => { const t = e.target as unknown as HTMLInputElement; if (t.name) validateField(e.currentTarget, t.name); }} onChange={(e) => { const t = e.target as unknown as HTMLInputElement; if (t.name) validateField(e.currentTarget, t.name, true); }} noValidate exit={{ opacity: 0 }} className="grid gap-4 sm:grid-cols-2">
                     {([['firstName', 'Vorname', 'given-name', 'text'], ['lastName', 'Nachname', 'family-name', 'text']] as const).map(([n, l, ac, t]) => (
                       <div key={n}>
                         <label htmlFor={n} className="mb-1.5 block text-sm font-bold">{l}</label>
                         <Input id={n} name={n} type={t} autoComplete={ac} aria-invalid={!!errors[n]} aria-describedby={errors[n] ? `${n}-e` : undefined} />
-                        {errors[n] && <p id={`${n}-e`} className="mt-1 text-sm text-red-400">{errors[n]}</p>}
+                        {errors[n] && <p id={`${n}-e`} className="mt-1.5 flex items-start gap-1.5 text-sm text-red-400"><AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden />{errors[n]}</p>}
                       </div>
                     ))}
                     <div className="sm:col-span-2">
                       <label htmlFor="email" className="mb-1.5 block text-sm font-bold">E-Mail</label>
                       <Input id="email" name="email" type="email" inputMode="email" autoComplete="email" aria-invalid={!!errors.email} aria-describedby={errors.email ? 'email-e' : undefined} />
-                      {errors.email && <p id="email-e" className="mt-1 text-sm text-red-400">{errors.email}</p>}
+                      {errors.email && <p id="email-e" className="mt-1.5 flex items-start gap-1.5 text-sm text-red-400"><AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden />{errors.email}</p>}
                     </div>
                     <div className="sm:col-span-2">
                       <Button type="submit" disabled={state === 'loading'} aria-busy={state === 'loading'} className="w-full sm:w-auto">
