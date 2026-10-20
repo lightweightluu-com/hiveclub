@@ -51,7 +51,7 @@ export function Hero() {
 
         <h1 className="text-display text-[clamp(5rem,min(28vw,24vh),16rem)] text-fg">
           <TextReveal text="HIVE" delay={0.35} />
-          <span className="block bg-gradient-to-r from-accent via-violet to-blue bg-clip-text text-[0.28em] tracking-[-0.02em] text-transparent">
+          <span className="block bg-gradient-to-r from-accent via-violet to-blue bg-clip-text text-[clamp(1.05rem,5.6vw,3.75rem)] tracking-[-0.02em] text-transparent">
             <TextReveal text="Morphing Clubbing" delay={0.8} />
           </span>
         </h1>

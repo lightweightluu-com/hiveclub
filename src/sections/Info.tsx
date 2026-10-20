@@ -37,7 +37,7 @@ export function Info() {
     <section id="info" className="mx-auto max-w-7xl px-4 py-24 sm:px-6">
       <SectionHead eyebrow="Club-Info" title="Hier findest du uns" />
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_1.2fr]">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_1.2fr]">
         <div className="space-y-4">
           <Reveal>
             <GlowCard className="p-6">
@@ -94,7 +94,7 @@ export function Info() {
         </Reveal>
       </div>
 
-      <div id="hausregeln" className="mt-20 grid gap-8 lg:grid-cols-[1fr_1.4fr]">
+      <div id="hausregeln" className="mt-20 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_1.4fr]">
         <Reveal>
           <p className="mb-3 text-xs font-bold uppercase tracking-[0.3em] text-accent-text">House Rules</p>
           <h2 className="text-display text-[clamp(2.2rem,7vw,4.5rem)]">Gut zueinander.</h2>

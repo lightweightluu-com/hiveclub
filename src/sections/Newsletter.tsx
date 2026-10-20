@@ -56,7 +56,7 @@ export function Newsletter() {
       <Reveal>
         <div className="relative overflow-hidden rounded-[2rem] border border-line bg-surface p-6 sm:p-12">
           <div aria-hidden className="absolute -right-24 -top-24 size-80 rounded-full bg-violet/30 blur-3xl" />
-          <div className="relative grid gap-10 lg:grid-cols-2">
+          <div className="relative grid grid-cols-1 gap-10 lg:grid-cols-2">
             <div>
               <p className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.3em] text-accent-text"><Mail className="size-4" /> Newsletter</p>
               <h2 className="text-display text-[clamp(2.4rem,8vw,5rem)]">Liebesbriefe aus dem Hive</h2>

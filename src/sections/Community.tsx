@@ -66,7 +66,7 @@ export function Community() {
         <SectionHead eyebrow="Wohlfühlen im Hive" title="Mehr als Nacht">
           Bewegung, Essen und Gemeinschaft – bevor und nachdem die Bässe übernehmen.
         </SectionHead>
-        <ul className="grid gap-3 md:grid-cols-3">
+        <ul className="grid grid-cols-1 gap-3 md:grid-cols-3">
           {WELLNESS.map((w, i) => {
             const Icon = [Flower2, Heart, UtensilsCrossed][i];
             return (
