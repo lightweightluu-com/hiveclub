@@ -7,8 +7,8 @@ import { fileURLToPath } from 'node:url';
 // App-Name und Farben hier anpassen – sie landen im Web-App-Manifest.
 const APP_NAME = 'Hive Club Zürich';
 const APP_SHORT_NAME = 'Hive';
-const THEME_COLOR = '#07070a';
-const BACKGROUND_COLOR = '#07070a';
+const THEME_COLOR = '#f5f2ec';
+const BACKGROUND_COLOR = '#f5f2ec';
 
 export default defineConfig({
   resolve: {

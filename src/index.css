@@ -1,8 +1,25 @@
 @import 'tailwindcss';
 
-/* Design-Tokens: dunkel zuerst, hell über prefers-color-scheme. */
+/* Design-Tokens: hell ist Standard (Farben von hiveclub.ch), dunkel über data-theme="dark". */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
 :root {
-  color-scheme: dark light;
+  color-scheme: light;
+  --bg: #f5f2ec;
+  --surface: #ffffff;
+  --surface-2: #e8e2db;       /* Creme aus dem Footer der Originalseite */
+  --fg: #0a0a0a;
+  --muted: #55524c;
+  --line: rgb(10 10 10 / 0.18);
+  --accent: #e77929;          /* Hive-Orange */
+  --accent-fg: #0a0a0a;
+  --accent-text: #a14f04;     /* dunkleres Orange für Text, ≥ 4.5 : 1 auf Creme */
+  --violet: #d9660e;
+  --blue: #c66606;
+  --hex: rgb(10 10 10 / 0.09);
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
   --bg: #07070a;
   --surface: #101016;
   --surface-2: #17171f;
@@ -15,22 +32,6 @@
   --violet: #8b5cf6;
   --blue: #38bdf8;
   --hex: rgb(255 255 255 / 0.07);
-}
-@media (prefers-color-scheme: light) {
-  :root {
-    --bg: #f6f4fb;
-    --surface: #ffffff;
-    --surface-2: #ece9f6;
-    --fg: #14111f;
-    --muted: #55526b;
-    --line: rgb(20 17 31 / 0.14);
-    --accent: #5b21b6;
-    --accent-fg: #ffffff;
-    --accent-text: #5b21b6;
-    --violet: #7c3aed;
-    --blue: #0284c7;
-    --hex: rgb(20 17 31 / 0.08);
-  }
 }
 
 @theme inline {

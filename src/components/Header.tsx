@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { ArrowUpRight, Menu } from 'lucide-react';
 import { NAV, SOCIALS } from '@/data/club';
 import { HexMark } from './Logo';
+import { ThemeToggle } from './ThemeToggle';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from './ui/sheet';
 
 export function Header() {
@@ -42,6 +43,8 @@ export function Header() {
           ))}
         </nav>
 
+        <div className="flex items-center gap-2">
+        <ThemeToggle />
         <Sheet>
           <SheetTrigger
             aria-label="Menü öffnen"
@@ -80,6 +83,7 @@ export function Header() {
             </div>
           </SheetContent>
         </Sheet>
+        </div>
       </div>
     </motion.header>
   );
