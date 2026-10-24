@@ -1,4 +1,4 @@
-import { EVENTS, type ClubEvent } from '../src/data/club';
+import { EVENTS, RESIDENTS, type ClubEvent, type LineupItem } from '../src/data/club';
 
 interface Env {
   DB: KVNamespace;
@@ -7,8 +7,12 @@ interface Env {
   ADMIN_HASH: string;
 }
 
+type Dj = { id: string; name: string; resident: boolean };
+type LineupEntry = { djId: string; time: string };
+
 /** So liegt ein Event in KV (t:<id>). */
-type StoredEvent = ClubEvent & {
+type StoredEvent = Omit<ClubEvent, 'lineup'> & {
+  lineup: LineupEntry[];
   status: 'draft' | 'published';
   /** null = kein Flyer; sonst Zeitstempel für Cache-Busting. */
   imageVersion: number | null;
@@ -87,6 +91,7 @@ async function seedIfEmpty(env: Env) {
       ...e,
       id: (await sha256(`seed:${e.id}`)).slice(0, 16),
       status: 'published' as const,
+      lineup: [],
       imageVersion: null,
       createdAt: now,
       updatedAt: now
@@ -102,7 +107,12 @@ async function readIndex(env: Env): Promise<string[]> {
   return JSON.parse((await env.DB.get('idx')) ?? '[]') as string[];
 }
 
-const getEvent = (env: Env, id: string) => env.DB.get<StoredEvent>(`t:${id}`, 'json');
+const withLineup = (e: StoredEvent): StoredEvent => ({ ...e, lineup: e.lineup ?? [] });
+
+async function getEvent(env: Env, id: string): Promise<StoredEvent | null> {
+  const e = await env.DB.get<StoredEvent>(`t:${id}`, 'json');
+  return e ? withLineup(e) : null;
+}
 
 async function allEvents(env: Env): Promise<StoredEvent[]> {
   const ids = await readIndex(env);
@@ -112,9 +122,38 @@ async function allEvents(env: Env): Promise<StoredEvent[]> {
 
 const saveEvent = (env: Env, e: StoredEvent) => env.DB.put(`t:${e.id}`, JSON.stringify(e));
 
-function publicShape(e: StoredEvent) {
-  const { status: _s, createdAt: _c, updatedAt: _u, ...rest } = e;
-  return rest;
+// ---------- DJs ----------
+
+/** DJs liegen als eine Liste unter `djs`. Beim ersten Zugriff werden die bisherigen Residents angelegt. */
+async function readDjs(env: Env): Promise<Dj[]> {
+  const stored = await env.DB.get<Dj[]>('djs', 'json');
+  if (stored) return stored;
+  const seeded: Dj[] = await Promise.all(
+    RESIDENTS.map(async (name) => ({ id: (await sha256(`seed-dj:${name}`)).slice(0, 16), name, resident: true }))
+  );
+  await env.DB.put('djs', JSON.stringify(seeded));
+  return seeded;
+}
+
+const writeDjs = (env: Env, djs: Dj[]) => env.DB.put('djs', JSON.stringify(djs));
+const byName = (a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name, 'de', { sensitivity: 'base' });
+
+/** Nach Auftrittszeit sortieren; Zeiten vor dem Beginn des Events zählen als nach Mitternacht. */
+function sortLineup(start: string, entries: LineupEntry[]): LineupEntry[] {
+  const minutes = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
+  const startMin = minutes(start.slice(11, 16));
+  const key = (t: string) => (t === '' ? Infinity : minutes(t) < startMin ? minutes(t) + 1440 : minutes(t));
+  return entries.map((e, i) => ({ e, i })).sort((a, b) => key(a.e.time) - key(b.e.time) || a.i - b.i).map((x) => x.e);
+}
+
+function publicShape(e: StoredEvent, djs: Dj[]) {
+  const { status: _s, createdAt: _c, updatedAt: _u, lineup, ...rest } = e;
+  const names = new Map(djs.map((d) => [d.id, d]));
+  const items: LineupItem[] = lineup.flatMap((l) => {
+    const dj = names.get(l.djId);
+    return dj ? [{ name: dj.name, time: l.time, ...(dj.resident ? { resident: true } : {}) }] : [];
+  });
+  return { ...rest, lineup: items };
 }
 
 // ---------- Eingabe prüfen ----------
@@ -128,7 +167,7 @@ const str = (v: unknown, max: number, label: string, required = false): string =
 
 const ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?(Z|[+-]\d{2}:\d{2})$/;
 
-function parseEvent(body: Record<string, unknown>, base: StoredEvent | null) {
+function parseEvent(body: Record<string, unknown>, base: StoredEvent | null, djs: Dj[]) {
   const title = str(body.title, 120, 'Der Titel', true);
   const start = str(body.start, 40, 'Das Datum', true);
   if (!ISO.test(start) || Number.isNaN(Date.parse(start))) throw new HttpError(400, 'Datum oder Uhrzeit ist ungültig.');
@@ -150,6 +189,22 @@ function parseEvent(body: Record<string, unknown>, base: StoredEvent | null) {
     if (!ok) throw new HttpError(400, 'Der Link muss mit https:// beginnen.');
   }
 
+  if (body.lineup !== undefined && !Array.isArray(body.lineup)) throw new HttpError(400, 'Das Line-up ist ungültig.');
+  const rawLineup = (body.lineup as unknown[] | undefined) ?? [];
+  if (rawLineup.length > 50) throw new HttpError(400, 'Maximal 50 Einträge im Line-up erlaubt.');
+  const known = new Set(djs.map((d) => d.id));
+  const lineup = sortLineup(
+    start,
+    rawLineup.map((raw) => {
+      const r = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+      const djId = typeof r.djId === 'string' ? r.djId : '';
+      const time = typeof r.time === 'string' ? r.time.trim() : '';
+      if (!known.has(djId)) throw new HttpError(400, 'Ein DJ im Line-up gibt es nicht (mehr).');
+      if (time !== '' && !/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) throw new HttpError(400, 'Eine Zeit im Line-up ist ungültig (Format HH:MM).');
+      return { djId, time };
+    })
+  );
+
   const fields = {
     title,
     start,
@@ -159,6 +214,7 @@ function parseEvent(body: Record<string, unknown>, base: StoredEvent | null) {
     blurb: str(body.blurb, 400, 'Die Beschreibung', status === 'published'),
     size: size as ClubEvent['size'],
     tags,
+    lineup,
     ...(str(body.badge, 20, 'Das Badge') ? { badge: str(body.badge, 20, 'Das Badge') } : {}),
     ...(details ? { details } : {}),
     ...(link ? { link } : {}),
@@ -222,6 +278,57 @@ async function login(request: Request, env: Env) {
 
 // ---------- Routen ----------
 
+const djName = (v: unknown) => {
+  const name = str(v, 60, 'Der Name', true);
+  return name;
+};
+
+async function handleDjs(request: Request, env: Env, path: string[]): Promise<Response> {
+  const method = request.method;
+  const djs = await readDjs(env);
+  const taken = (name: string, except?: string) => djs.some((d) => d.id !== except && d.name.localeCompare(name, 'de', { sensitivity: 'base' }) === 0);
+
+  if (path.length === 1) {
+    if (method === 'GET') return json({ djs: [...djs].sort(byName) });
+    if (method === 'POST') {
+      const body = await readJson(request);
+      const name = djName(body.name);
+      if (taken(name)) throw new HttpError(409, 'Diesen DJ gibt es schon.');
+      const dj: Dj = { id: newId(), name, resident: body.resident === true };
+      await writeDjs(env, [...djs, dj]);
+      return json({ dj }, 201);
+    }
+    return fail(405, 'Methode nicht erlaubt.');
+  }
+
+  const id = path[1];
+  const dj = djs.find((d) => d.id === id);
+  if (!dj || path.length > 2) return fail(404, 'DJ nicht gefunden.');
+
+  if (method === 'PUT') {
+    const body = await readJson(request);
+    const name = djName(body.name);
+    if (taken(name, id)) throw new HttpError(409, 'Diesen DJ gibt es schon.');
+    const next: Dj = { id, name, resident: body.resident === true };
+    await writeDjs(env, djs.map((d) => (d.id === id ? next : d)));
+    return json({ dj: next });
+  }
+  if (method === 'DELETE') {
+    // Aus allen Line-ups entfernen, damit keine Verweise ins Leere bleiben.
+    let removed = 0;
+    for (const e of await allEvents(env)) {
+      const rest = e.lineup.filter((l) => l.djId !== id);
+      if (rest.length !== e.lineup.length) {
+        removed += e.lineup.length - rest.length;
+        await saveEvent(env, { ...e, lineup: rest, updatedAt: new Date().toISOString() });
+      }
+    }
+    await writeDjs(env, djs.filter((d) => d.id !== id));
+    return json({ ok: true, removedFromLineups: removed });
+  }
+  return fail(405, 'Methode nicht erlaubt.');
+}
+
 async function handleAdmin(request: Request, env: Env, path: string[]): Promise<Response> {
   const method = request.method;
   const mutating = method !== 'GET' && method !== 'HEAD';
@@ -244,13 +351,15 @@ async function handleAdmin(request: Request, env: Env, path: string[]): Promise<
     return imageResponse(env, path[1], 'private, no-store');
   }
 
+  if (path[0] === 'djs') return handleDjs(request, env, path);
+
   if (path[0] !== 'events') return fail(404, 'Nicht gefunden.');
 
   // /api/admin/events
   if (path.length === 1) {
     if (method === 'GET') return json({ events: await allEvents(env) });
     if (method === 'POST') {
-      const { fields, status } = parseEvent(await readJson(request), null);
+      const { fields, status } = parseEvent(await readJson(request), null, await readDjs(env));
       const now = new Date().toISOString();
       const event: StoredEvent = { id: newId(), ...fields, status, imageVersion: null, createdAt: now, updatedAt: now };
       const idx = await readIndex(env);
@@ -270,7 +379,7 @@ async function handleAdmin(request: Request, env: Env, path: string[]): Promise<
   if (path.length === 2) {
     if (method === 'GET') return json({ event });
     if (method === 'PUT') {
-      const { fields, status } = parseEvent(await readJson(request), event);
+      const { fields, status } = parseEvent(await readJson(request), event, await readDjs(env));
       const next: StoredEvent = { id, ...fields, status, imageVersion: event.imageVersion, createdAt: event.createdAt, updatedAt: new Date().toISOString() };
       await saveEvent(env, next);
       return json({ event: next });
@@ -320,7 +429,12 @@ export default {
       if (path[0] === 'api') {
         if (path[1] === 'events' && path.length === 2 && request.method === 'GET') {
           const list = (await allEvents(env)).filter((e) => e.status === 'published');
-          return json({ events: list.map(publicShape) }, 200, { 'cache-control': 'no-cache' });
+          const djs = await readDjs(env);
+          return json({ events: list.map((e) => publicShape(e, djs)) }, 200, { 'cache-control': 'no-cache' });
+        }
+        if (path[1] === 'residents' && path.length === 2 && request.method === 'GET') {
+          const residents = (await readDjs(env)).filter((d) => d.resident).sort(byName).map((d) => d.name);
+          return json({ residents }, 200, { 'cache-control': 'no-cache' });
         }
         if (path[1] === 'admin') return await handleAdmin(request, env, path.slice(2));
         return fail(404, 'Nicht gefunden.');

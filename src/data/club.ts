@@ -19,6 +19,9 @@ export const SOCIALS = [
   { id: 'soundcloud', label: 'SoundCloud', handle: 'hive-zurich', href: 'https://soundcloud.com/hive-zurich' }
 ] as const;
 
+/** Ein Eintrag im Line-up, wie ihn die öffentliche Seite bekommt (DJ-Name bereits aufgelöst). */
+export type LineupItem = { name: string; time: string; resident?: boolean };
+
 export type ClubEvent = {
   id: string;
   title: string;
@@ -34,6 +37,8 @@ export type ClubEvent = {
   featured?: boolean;
   /** Ausführlicher Text für die Detailseite; Absätze durch Leerzeile getrennt. */
   details?: string;
+  /** Line-up, nach Auftrittszeit sortiert (nach Mitternacht folgt auf den Abend). */
+  lineup?: LineupItem[];
   /** Externer Link (z. B. Tickets) auf der Detailseite, nur https. */
   link?: string;
   /** Kartengrösse im Programm-Raster: sm = 2 von 6 Spalten, lg = 3 von 6. */

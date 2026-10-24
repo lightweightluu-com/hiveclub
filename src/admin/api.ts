@@ -1,4 +1,4 @@
-import type { ApiEvent } from '@/lib/events-api';
+import type { ApiEvent, ApiLineupEntry, Dj } from '@/lib/events-api';
 
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
@@ -25,6 +25,7 @@ export type EventInput = Pick<ApiEvent, 'title' | 'start' | 'timeLabel' | 'kind'
   badge: string;
   details: string;
   link: string;
+  lineup: ApiLineupEntry[];
   featured: boolean;
   status: ApiEvent['status'];
 };
@@ -46,6 +47,16 @@ export const api = {
     return request<{ event: ApiEvent }>('PUT', `/api/admin/events/${id}`, j.body, j.headers).then((d) => d.event);
   },
   remove: (id: string) => request<{ ok: true }>('DELETE', `/api/admin/events/${id}`),
+  listDjs: () => request<{ djs: Dj[] }>('GET', '/api/admin/djs').then((d) => d.djs),
+  createDj: (name: string, resident: boolean) => {
+    const j = jsonBody({ name, resident });
+    return request<{ dj: Dj }>('POST', '/api/admin/djs', j.body, j.headers).then((d) => d.dj);
+  },
+  updateDj: (id: string, name: string, resident: boolean) => {
+    const j = jsonBody({ name, resident });
+    return request<{ dj: Dj }>('PUT', `/api/admin/djs/${id}`, j.body, j.headers).then((d) => d.dj);
+  },
+  removeDj: (id: string) => request<{ ok: true; removedFromLineups: number }>('DELETE', `/api/admin/djs/${id}`),
   uploadImage: (id: string, blob: Blob) =>
     request<{ event: ApiEvent }>('PUT', `/api/admin/events/${id}/image`, blob, { 'content-type': blob.type }).then((d) => d.event),
   removeImage: (id: string) => request<{ event: ApiEvent }>('DELETE', `/api/admin/events/${id}/image`).then((d) => d.event)

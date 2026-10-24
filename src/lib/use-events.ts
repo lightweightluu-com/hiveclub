@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { cachedEvents, loadEvents, type PublicEvent } from './events-api';
+import { cachedEvents, cachedResidents, loadEvents, loadResidents, type PublicEvent } from './events-api';
 
 /** null = lädt noch. */
 export function useEvents(): PublicEvent[] | null {
@@ -10,4 +10,15 @@ export function useEvents(): PublicEvent[] | null {
     return () => { alive = false; };
   }, []);
   return events;
+}
+
+/** null = lädt noch. */
+export function useResidents(): string[] | null {
+  const [residents, setResidents] = useState<string[] | null>(cachedResidents);
+  useEffect(() => {
+    let alive = true;
+    loadResidents().then((r) => alive && setResidents(r));
+    return () => { alive = false; };
+  }, []);
+  return residents;
 }

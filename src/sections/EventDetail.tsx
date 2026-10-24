@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, ArrowUpRight, CalendarPlus, Check, Clock, Flower2, MapPin, Music2, Navigation, Share2, Ticket, Zap } from 'lucide-react';
+import { ArrowLeft, ArrowUpRight, CalendarPlus, Check, Clock, Flower2, MapPin, Music2, Navigation, Share2, Star, Ticket, Zap } from 'lucide-react';
 import { ADDRESS } from '@/data/club';
 import { HexMark } from '@/components/Logo';
 import { GlowCard } from '@/components/magic/glow-card';
@@ -130,6 +130,24 @@ function Detail({ e, others }: { e: PublicEvent; others: PublicEvent[] }) {
         <div className="max-w-prose">
           <p className="text-xl leading-relaxed">{e.blurb}</p>
           {paragraphs.map((p, i) => <p key={i} className="mt-5 leading-relaxed text-muted">{p}</p>)}
+          {e.lineup && e.lineup.length > 0 && (
+            <section aria-labelledby="lineup" className="mt-10">
+              <h2 id="lineup" className="text-display text-3xl">Line-up</h2>
+              <ol className="mt-5 divide-y divide-line border-y border-line">
+                {e.lineup.map((l, i) => (
+                  <li key={`${l.name}-${l.time}-${i}`} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-3.5">
+                    <span className="w-16 shrink-0 font-display font-black text-lg tabular-nums text-accent-text">{l.time || '–'}</span>
+                    <span className="min-w-0 text-xl font-extrabold">{l.name}</span>
+                    {l.resident && (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-accent-text px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-accent-text">
+                        <Star aria-hidden className="size-3" /> Resident
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ol>
+            </section>
+          )}
           {e.tags.length > 0 && (
             <ul aria-label="Stichwörter" className="mt-8 flex flex-wrap gap-2">
               {e.tags.map((t) => (

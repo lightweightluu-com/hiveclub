@@ -1,7 +1,13 @@
-import { EVENTS, type ClubEvent } from '@/data/club';
+import { EVENTS, RESIDENTS, type ClubEvent } from '@/data/club';
 
 /** Ein Event, wie es die API ausliefert (Admin sieht zusätzlich Status). */
-export type ApiEvent = ClubEvent & {
+export type Dj = { id: string; name: string; resident: boolean };
+
+/** Im Admin liegt das Line-up als DJ-ID plus Zeit vor. */
+export type ApiLineupEntry = { djId: string; time: string };
+
+export type ApiEvent = Omit<ClubEvent, 'lineup'> & {
+  lineup: ApiLineupEntry[];
   status: 'draft' | 'published';
   imageVersion: number | null;
   updatedAt: string;
@@ -32,4 +38,21 @@ export function loadEvents(): Promise<PublicEvent[]> {
     .catch(() => sortByStart(EVENTS))
     .then((list) => (cache = list));
   return pending;
+}
+
+let residentsPending: Promise<string[]> | null = null;
+let residentsCache: string[] | null = null;
+export const cachedResidents = () => residentsCache;
+
+/** Residents für das Band auf der Startseite. Ohne Backend gelten die eingebauten Namen. */
+export function loadResidents(): Promise<string[]> {
+  residentsPending ??= fetch('/api/residents', { headers: { accept: 'application/json' } })
+    .then((r) => {
+      if (!r.ok) throw new Error(String(r.status));
+      return r.json() as Promise<{ residents: string[] }>;
+    })
+    .then((d) => d.residents)
+    .catch(() => [...RESIDENTS])
+    .then((list) => (residentsCache = list));
+  return residentsPending;
 }
