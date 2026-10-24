@@ -1,0 +1,26 @@
+name: Token-Check (Wegwerf)
+
+# Nur lesend: prüft, was der Org-Token darf. Gibt nie Token oder IDs aus.
+on:
+  push:
+    paths: ['.github/workflows/token-check.yml']
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Berechtigungen prüfen
+        env:
+          T: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          A: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          api() { curl -sS -H "Authorization: Bearer $T" "https://api.cloudflare.com/client/v4$1"; }
+          report() {
+            echo "$1 -> success=$(echo "$2" | jq -r '.success') errors=$(echo "$2" | jq -c '[.errors[]?.code]') count=$(echo "$2" | jq -r 'if (.result|type)=="array" then (.result|length) else "n/a" end')"
+          }
+          report "token-verify (account)" "$(api "/accounts/$A/tokens/verify")"
+          report "token-verify (user)" "$(api "/user/tokens/verify")"
+          report "r2 buckets" "$(api "/accounts/$A/r2/buckets")"
+          report "d1 databases" "$(api "/accounts/$A/d1/database")"
+          report "kv namespaces" "$(api "/accounts/$A/storage/kv/namespaces")"
+          report "workers scripts" "$(api "/accounts/$A/workers/scripts")"
