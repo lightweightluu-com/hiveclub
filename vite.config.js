@@ -38,6 +38,8 @@ export default defineConfig({
       },
       workbox: {
         navigateFallback: '/index.html',
+        // API und Bilder laufen über den Worker, nie über die Offline-Shell.
+        navigateFallbackDenylist: [/^\/api\//, /^\/img\//],
         globPatterns: ['**/*.{js,css,html,svg,png,ico,webp,woff2}']
       }
     })

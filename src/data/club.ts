@@ -32,11 +32,15 @@ export type ClubEvent = {
   /** Nur belegte Fakten aus der Eventbeschreibung. */
   tags: string[];
   featured?: boolean;
+  /** Kartengrösse im Programm-Raster: sm = 2 von 6 Spalten, lg = 3 von 6. */
+  size: 'sm' | 'lg';
 };
 
+/** Ausgangsdaten: Das Backend legt daraus beim ersten Aufruf die Einträge an; ohne Backend dient es als Fallback. */
 export const EVENTS: ClubEvent[] = [
   {
     id: 'dihive-staatsparty',
+    size: 'sm',
     tags: ['dihive', 'Residents'],
     title: 'dihive × Staatsparty',
     start: '2026-10-22T22:00:00+02:00',
@@ -48,6 +52,7 @@ export const EVENTS: ClubEvent[] = [
   },
   {
     id: 'sync-hive',
+    size: 'sm',
     tags: ['Yoga', 'wildpeakthythm'],
     title: 'Sync@Hive',
     start: '2026-10-22T18:30:00+02:00',
@@ -58,6 +63,7 @@ export const EVENTS: ClubEvent[] = [
   },
   {
     id: 'shut-up-and-dance',
+    size: 'sm',
     tags: ['Durchgehend tanzen'],
     title: 'Shut Up And Dance',
     start: '2026-10-22T20:00:00+02:00',
@@ -68,6 +74,7 @@ export const EVENTS: ClubEvent[] = [
   },
   {
     id: 'kiki',
+    size: 'lg',
     tags: ['2 Dancefloors'],
     title: 'Kiki',
     start: '2026-10-23T23:00:00+02:00',
@@ -78,6 +85,7 @@ export const EVENTS: ClubEvent[] = [
   },
   {
     id: 'denis-horvat-lazare',
+    size: 'lg',
     tags: ['Innervisions', 'Afterlife', 'Diynamic'],
     title: 'Denis Horvat × Lazare',
     start: '2026-10-24T23:00:00+02:00',

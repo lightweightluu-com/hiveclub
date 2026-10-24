@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { ArrowUpRight, CalendarDays, MapPin } from 'lucide-react';
-import { EVENTS } from '@/data/club';
+import type { ClubEvent } from '@/data/club';
+import { useEvents } from '@/lib/use-events';
 import { Aurora } from '@/components/magic/aurora';
 import { HexField } from '@/components/magic/hex-field';
 import { LightBeams } from '@/components/magic/light-beams';
@@ -11,13 +12,14 @@ import { HexMark } from '@/components/Logo';
 import { Button } from '@/components/ui/button';
 import { fmtDay, fmtMonth, fmtWeekday } from '@/lib/format';
 
-export function nextEvent(now = Date.now()) {
-  const sorted = [...EVENTS].sort((a, b) => +new Date(a.start) - +new Date(b.start));
+export function nextEvent(list: ClubEvent[], now = Date.now()) {
+  const sorted = [...list].sort((a, b) => +new Date(a.start) - +new Date(b.start));
   return sorted.find((e) => +new Date(e.start) > now) ?? sorted[sorted.length - 1];
 }
 
 export function Hero() {
-  const ev = nextEvent();
+  const events = useEvents();
+  const ev = events && events.length > 0 ? nextEvent(events) : null;
 
   return (
     <section id="top" className="relative isolate flex min-h-[100svh] flex-col overflow-hidden">
@@ -60,6 +62,15 @@ export function Hero() {
           style={{ ['--d' as string]: '0.85s' }}
           className="hero-in mt-6 flex w-full max-w-md flex-col gap-3"
         >
+          {events === null ? (
+            <div aria-busy="true" aria-label="Nächstes Event wird geladen" className="h-[17rem] w-full animate-pulse rounded-3xl border border-line bg-surface" />
+          ) : ev === null ? (
+            <div className="w-full rounded-3xl border border-line bg-surface p-5">
+              <p className="text-xs font-bold uppercase tracking-widest text-accent-text">Als Nächstes</p>
+              <p className="mt-3 text-lg font-extrabold">Neues Programm folgt bald.</p>
+              <p className="mt-1 text-sm text-muted">Aktuell ist kein Event eingetragen.</p>
+            </div>
+          ) : (
           <a
             href="#programm"
             aria-label={`${ev.title} – ${fmtWeekday(ev.start)}, ${ev.timeLabel}: zum Programm`}
@@ -89,6 +100,7 @@ export function Hero() {
             </ul>
             <div className="mt-4"><Countdown to={ev.start} /></div>
           </a>
+          )}
 
           <div className="grid w-full grid-cols-2 gap-3">
             <Button asChild className="w-full justify-center"><a href="#programm"><CalendarDays /> Programm</a></Button>
