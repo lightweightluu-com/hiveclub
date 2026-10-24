@@ -6,6 +6,10 @@ name: Deploy
 #
 # Benötigte Secrets (in der Org lightweightluu-com für alle Repos gesetzt):
 #   CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID
+#
+# Backend: Worker (worker/index.ts) mit KV-Namespace "<repo>-data". Der Namespace
+# wird bei Bedarf automatisch angelegt. Das Admin-Passwort steht nirgends im Repo,
+# nur sein SHA-256-Hash (ADMIN_HASH, siehe CLAUDE.md zum Wechseln).
 
 on:
   push:
@@ -15,6 +19,10 @@ on:
 concurrency:
   group: deploy-${{ github.ref }}
   cancel-in-progress: true
+
+env:
+  # SHA-256 des normalisierten Admin-Passworts (kein Geheimnis, nicht umkehrbar bei 117 Bit Entropie).
+  ADMIN_HASH: b23b993da7bef4fd7aa72298d63c2494ff930b8d80235d11f606a28aa1f72a2f
 
 jobs:
   deploy:
@@ -43,21 +51,67 @@ jobs:
           echo "name=$NAME" >> "$GITHUB_OUTPUT"
           echo "Deploy-Ziel: https://$NAME.lightweightluu.com"
 
-      - name: Wrangler-Config erzeugen
+      - name: KV-Namespace sicherstellen
+        id: kv
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          cat > wrangler.jsonc <<EOF
-          {
-            "name": "${{ steps.name.outputs.name }}",
-            "compatibility_date": "2026-09-01",
-            "assets": {
-              "directory": "./dist",
-              "not_found_handling": "single-page-application"
-            },
-            "routes": [
-              { "pattern": "${{ steps.name.outputs.name }}.lightweightluu.com", "custom_domain": true }
-            ]
+          set -euo pipefail
+          TITLE="${{ steps.name.outputs.name }}-data"
+          API="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/storage/kv/namespaces"
+          AUTH="Authorization: Bearer ${CLOUDFLARE_API_TOKEN}"
+
+          # Antwort prüfen; bei Fehler nur die Cloudflare-Fehlercodes ausgeben.
+          check() {
+            jq -e '.success == true' <<<"$1" >/dev/null || {
+              echo "Cloudflare-Fehler: $(jq -c '[.errors[]?.code]' <<<"$1")" >&2
+              exit 1
+            }
           }
-          EOF
+
+          ID=""
+          for PAGE in 1 2 3 4 5; do
+            RES=$(curl -sS -H "$AUTH" "$API?per_page=100&page=$PAGE")
+            check "$RES"
+            ID=$(jq -r --arg t "$TITLE" '[.result[] | select(.title == $t) | .id][0] // empty' <<<"$RES")
+            [ -n "$ID" ] && break
+            [ "$(jq '.result | length' <<<"$RES")" -lt 100 ] && break
+          done
+
+          if [ -z "$ID" ]; then
+            echo "Namespace \"$TITLE\" existiert noch nicht, lege ihn an."
+            BODY=$(jq -n --arg t "$TITLE" '{title: $t}')
+            RES=$(curl -sS -X POST -H "$AUTH" -H "Content-Type: application/json" -d "$BODY" "$API")
+            check "$RES"
+            ID=$(jq -r '.result.id' <<<"$RES")
+          else
+            echo "Namespace \"$TITLE\" gefunden."
+          fi
+
+          [ -n "$ID" ] && [ "$ID" != "null" ] || { echo "Namespace-ID fehlt." >&2; exit 1; }
+          echo "::add-mask::$ID"
+          echo "id=$ID" >> "$GITHUB_OUTPUT"
+
+      - name: Wrangler-Config erzeugen
+        env:
+          KV_ID: ${{ steps.kv.outputs.id }}
+          NAME: ${{ steps.name.outputs.name }}
+        run: |
+          jq -n --arg name "$NAME" --arg kv "$KV_ID" --arg hash "$ADMIN_HASH" '{
+            name: $name,
+            main: "worker/index.ts",
+            compatibility_date: "2026-09-01",
+            assets: {
+              directory: "./dist",
+              binding: "ASSETS",
+              not_found_handling: "single-page-application",
+              run_worker_first: ["/api/*", "/img/*"]
+            },
+            kv_namespaces: [{ binding: "DB", id: $kv }],
+            vars: { ADMIN_HASH: $hash },
+            routes: [{ pattern: ($name + ".lightweightluu.com"), custom_domain: true }]
+          }' > wrangler.jsonc
 
       - name: Deploy zu Cloudflare
         uses: cloudflare/wrangler-action@v3
