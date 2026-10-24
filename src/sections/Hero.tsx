@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { ArrowUpRight, CalendarDays, MapPin } from 'lucide-react';
 import type { ClubEvent } from '@/data/club';
 import { useEvents } from '@/lib/use-events';
+import { eventPath, handleLinkClick } from '@/lib/router';
 import { Aurora } from '@/components/magic/aurora';
 import { HexField } from '@/components/magic/hex-field';
 import { LightBeams } from '@/components/magic/light-beams';
@@ -72,8 +73,9 @@ export function Hero() {
             </div>
           ) : (
           <a
-            href="#programm"
-            aria-label={`${ev.title} – ${fmtWeekday(ev.start)}, ${ev.timeLabel}: zum Programm`}
+            href={eventPath(ev.id)}
+            onClick={handleLinkClick}
+            aria-label={`${ev.title} – ${fmtWeekday(ev.start)}, ${ev.timeLabel}: Eventdetails`}
             className="group block w-full cursor-pointer rounded-3xl border border-line bg-surface p-5 transition-all duration-200 hover:border-amber-500/50 hover:shadow-[0_0_32px_-10px_var(--accent)] active:scale-[0.99]"
           >
             <p className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-accent-text">

@@ -1,5 +1,6 @@
 import { Disc3, Flower2, Heart, Key, UtensilsCrossed } from 'lucide-react';
-import { RESIDENTS, SERIES, SISTER_PROJECTS, SITE, WELLNESS } from '@/data/club';
+import { ADDRESS, SERIES, SISTER_PROJECTS, WELLNESS } from '@/data/club';
+import { useResidents } from '@/lib/use-events';
 import { GlowCard } from '@/components/magic/glow-card';
 import { Marquee } from '@/components/magic/marquee';
 import { Reveal } from '@/components/magic/text-reveal';
@@ -7,7 +8,11 @@ import { SectionHead } from '@/components/SectionHead';
 import { Button } from '@/components/ui/button';
 
 export function Community() {
-  const half = Math.ceil(RESIDENTS.length / 2);
+  const loaded = useResidents();
+  const residents = loaded ?? [];
+  const half = Math.ceil(residents.length / 2);
+  // Kurze Listen für das Band auffüllen, damit es nicht leer läuft (nur optisch, die Namen stehen einmal im Text).
+  const fill = (list: string[]) => (list.length === 0 ? list : Array.from({ length: Math.max(1, Math.ceil(8 / list.length)) }, () => list).flat());
   return (
     <>
       <section id="community" className="py-24">
@@ -17,18 +22,21 @@ export function Community() {
           </SectionHead>
         </div>
 
-        <div className="space-y-3 [mask-image:linear-gradient(90deg,transparent,#000_8%,#000_92%,transparent)]">
-          {[RESIDENTS.slice(0, half), RESIDENTS.slice(half)].map((row, r) => (
-            <Marquee key={r} reverse={r === 1} duration={55 + r * 10}>
-              {row.map((n) => (
-                <span key={n} className="whitespace-nowrap rounded-full border border-line bg-surface px-5 py-3 font-display font-black text-xl uppercase tracking-tight transition-colors hover:border-accent-text hover:text-accent-text sm:text-3xl">
-                  {n}
-                </span>
-              ))}
-            </Marquee>
-          ))}
-        </div>
-        <p className="sr-only">Residents: {RESIDENTS.join(', ')}</p>
+        {loaded === null && <div aria-hidden className="mx-auto h-[10.5rem] max-w-7xl animate-pulse rounded-3xl bg-surface/60 px-4 sm:px-6" />}
+        {residents.length > 0 && (
+          <div className="space-y-3 [mask-image:linear-gradient(90deg,transparent,#000_8%,#000_92%,transparent)]">
+            {[residents.slice(0, half), residents.slice(half)].filter((row) => row.length > 0).map((row, r) => (
+              <Marquee key={r} reverse={r === 1} duration={55 + r * 10}>
+                {fill(row).map((n, k) => (
+                  <span key={`${n}-${k}`} className="whitespace-nowrap rounded-full border border-line bg-surface px-5 py-3 font-display font-black text-xl uppercase tracking-tight transition-colors hover:border-accent-text hover:text-accent-text sm:text-3xl">
+                    {n}
+                  </span>
+                ))}
+              </Marquee>
+            ))}
+          </div>
+        )}
+        <p className="sr-only">Residents: {residents.join(', ')}</p>
 
         <ul className="mx-auto mt-14 grid max-w-7xl grid-cols-1 gap-3 px-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
           {SERIES.map((s, i) => (
@@ -55,7 +63,7 @@ export function Community() {
               </p>
             </div>
             <div className="flex flex-col gap-3 lg:items-end">
-              <Button asChild size="default"><a href={SITE} target="_blank" rel="noreferrer noopener">Anfrage starten</a></Button>
+              <Button asChild size="default"><a href={ADDRESS.phoneHref}>Anfrage per Telefon</a></Button>
               <Button asChild variant="outline"><a href="#info">Kontakt & Adresse</a></Button>
             </div>
           </GlowCard>

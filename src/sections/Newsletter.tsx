@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertCircle, Check, Loader2, Mail } from 'lucide-react';
-import { SITE } from '@/data/club';
 import { Reveal } from '@/components/magic/text-reveal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -91,8 +90,7 @@ export function Newsletter() {
                       </Button>
                       {state === 'error' && (
                         <p role="alert" className="mt-3 text-sm text-red-400">
-                          Anmeldung gerade nicht möglich. Bitte melde dich direkt auf{' '}
-                          <a href={SITE} target="_blank" rel="noreferrer noopener" className="underline">hiveclub.ch</a> an.
+                          Die Anmeldung hat gerade nicht geklappt. Bitte versuche es später noch einmal.
                         </p>
                       )}
                     </div>

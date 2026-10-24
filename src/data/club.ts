@@ -3,11 +3,11 @@
 export const SITE = 'https://www.hiveclub.ch/';
 
 export const NAV = [
-  { id: 'programm', label: 'Programm', href: '#programm' },
-  { id: 'community', label: 'Community', href: '#community' },
-  { id: 'raumvermietung', label: 'Raumvermietung', href: '#raumvermietung' },
-  { id: 'wohlfuehlen', label: 'Wohlfühlen im Hive', href: '#wohlfuehlen' },
-  { id: 'about', label: 'About us', href: '#about' },
+  { id: 'programm', label: 'Programm', href: '/#programm' },
+  { id: 'community', label: 'Community', href: '/#community' },
+  { id: 'raumvermietung', label: 'Raumvermietung', href: '/#raumvermietung' },
+  { id: 'wohlfuehlen', label: 'Wohlfühlen im Hive', href: '/#wohlfuehlen' },
+  { id: 'about', label: 'About us', href: '/#about' },
   { id: 'shop', label: 'Hive Shop', href: SITE, external: true },
   { id: 'audio', label: 'Hive Audio', href: 'https://soundcloud.com/hive-zurich', external: true },
   { id: 'jobs', label: 'Jobs', href: SITE, external: true }
@@ -18,6 +18,9 @@ export const SOCIALS = [
   { id: 'facebook', label: 'Facebook', handle: 'hivezurich', href: 'https://www.facebook.com/hivezurich' },
   { id: 'soundcloud', label: 'SoundCloud', handle: 'hive-zurich', href: 'https://soundcloud.com/hive-zurich' }
 ] as const;
+
+/** Ein Eintrag im Line-up, wie ihn die öffentliche Seite bekommt (DJ-Name bereits aufgelöst). */
+export type LineupItem = { name: string; time: string; resident?: boolean };
 
 export type ClubEvent = {
   id: string;
@@ -32,6 +35,12 @@ export type ClubEvent = {
   /** Nur belegte Fakten aus der Eventbeschreibung. */
   tags: string[];
   featured?: boolean;
+  /** Ausführlicher Text für die Detailseite; Absätze durch Leerzeile getrennt. */
+  details?: string;
+  /** Line-up, nach Auftrittszeit sortiert (nach Mitternacht folgt auf den Abend). */
+  lineup?: LineupItem[];
+  /** Externer Link (z. B. Tickets) auf der Detailseite, nur https. */
+  link?: string;
   /** Kartengrösse im Programm-Raster: sm = 2 von 6 Spalten, lg = 3 von 6. */
   size: 'sm' | 'lg';
 };

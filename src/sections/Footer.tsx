@@ -2,6 +2,7 @@ import { ArrowUp, Music } from 'lucide-react';
 import { Facebook, Instagram } from '@/components/BrandIcons';
 import { ADDRESS, NAV, SISTER_PROJECTS, SOCIALS } from '@/data/club';
 import { HexMark } from '@/components/Logo';
+import { handleLinkClick } from '@/lib/router';
 
 const ICONS = { instagram: Instagram, facebook: Facebook, soundcloud: Music } as const;
 
@@ -17,7 +18,7 @@ export function Footer() {
           <ul className="grid grid-cols-2 gap-x-6 gap-y-1">
             {NAV.map((n) => (
               <li key={n.id}>
-                <a href={n.href} {...('external' in n ? { target: '_blank', rel: 'noreferrer noopener' } : {})} className="inline-flex min-h-9 items-center text-sm font-semibold text-muted hover:text-fg">{n.label}</a>
+                <a href={n.href} onClick={'external' in n ? undefined : handleLinkClick} {...('external' in n ? { target: '_blank', rel: 'noreferrer noopener' } : {})} className="inline-flex min-h-9 items-center text-sm font-semibold text-muted hover:text-fg">{n.label}</a>
               </li>
             ))}
           </ul>
@@ -40,7 +41,7 @@ export function Footer() {
       </div>
       <div className="mx-auto mt-12 flex max-w-7xl items-center justify-between gap-4 px-4 text-xs text-muted sm:px-6">
         <p>© 2025 created by Unwiderstehlich · Hive, Katakombe GmbH</p>
-        <a href="#top" aria-label="Nach oben" className="grid size-11 place-items-center rounded-full border border-line hover:border-accent-text"><ArrowUp className="size-4" /></a>
+        <a href="/" onClick={handleLinkClick} aria-label="Nach oben" className="grid size-11 place-items-center rounded-full border border-line hover:border-accent-text"><ArrowUp className="size-4" /></a>
       </div>
     </footer>
   );

@@ -1,8 +1,8 @@
 import { motion } from 'framer-motion';
 import { ArrowUpRight, Clock, Flower2, Music2, Zap } from 'lucide-react';
-import { SITE } from '@/data/club';
 import { imageUrl, type PublicEvent } from '@/lib/events-api';
 import { useEvents } from '@/lib/use-events';
+import { eventPath, handleLinkClick } from '@/lib/router';
 import { GlowCard } from '@/components/magic/glow-card';
 import { Badge } from '@/components/ui/badge';
 import { SectionHead } from '@/components/SectionHead';
@@ -71,19 +71,18 @@ function EventCard({ e, i, cols }: { e: PublicEvent; i: number; cols: number }) 
         </div>
 
         <div className="mt-8">
-          <h3 className={cn('text-display', big ? 'text-4xl sm:text-5xl' : 'text-3xl')}>{e.title}</h3>
+          <h3 className={cn('text-display', big ? 'text-4xl sm:text-5xl' : 'text-3xl')}>
+            {/* Der Titel-Link deckt per ::after die ganze Karte ab (grosse Tippfläche, ein einziger Link pro Karte). */}
+            <a href={eventPath(e.id)} onClick={handleLinkClick} className="after:absolute after:inset-0 after:z-10 after:rounded-3xl focus-visible:after:outline focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-accent-text">
+              {e.title}
+            </a>
+          </h3>
           <p className="mt-3 max-w-md text-muted">{e.blurb}</p>
           <div className="mt-5 flex items-center justify-between gap-3">
             <span className="inline-flex items-center gap-1.5 text-sm font-bold"><Clock className="size-4 text-accent-text" /> {e.timeLabel}</span>
-            <a
-              href={SITE}
-              target="_blank"
-              rel="noreferrer noopener"
-              aria-label={`Infos zu ${e.title} auf hiveclub.ch`}
-              className="grid size-11 place-items-center rounded-full border border-line transition-colors hover:border-accent-text hover:bg-accent hover:text-accent-fg"
-            >
+            <span aria-hidden className="grid size-11 place-items-center rounded-full border border-line transition-colors group-hover/glow:border-accent-text group-hover/glow:bg-accent group-hover/glow:text-accent-fg">
               <ArrowUpRight className="size-5" />
-            </a>
+            </span>
           </div>
         </div>
       </GlowCard>
@@ -116,8 +115,8 @@ export function Events() {
         </ul>
       )}
       <p className="mt-8 text-sm text-muted">
-        Das vollständige Programm mit Line-ups findest du auf{' '}
-        <a href={SITE} target="_blank" rel="noreferrer noopener" className="font-semibold text-accent-text underline underline-offset-4">hiveclub.ch</a>.
+        Tippe auf ein Event für Details. Neuigkeiten gibt es zuerst auf{' '}
+        <a href="https://www.instagram.com/hive_club/" target="_blank" rel="noreferrer noopener" className="font-semibold text-accent-text underline underline-offset-4">Instagram</a>.
       </p>
     </section>
   );

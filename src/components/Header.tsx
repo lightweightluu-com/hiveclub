@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { ArrowUpRight, Menu } from 'lucide-react';
 import { NAV, SOCIALS } from '@/data/club';
 import { HexMark } from './Logo';
+import { handleLinkClick } from '@/lib/router';
 import { ThemeToggle } from './ThemeToggle';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from './ui/sheet';
 
@@ -29,7 +30,7 @@ export function Header() {
       }`}
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
-        <a href="#top" className="flex items-center gap-2 font-display font-black text-xl uppercase tracking-tight" aria-label="Hive Club Zürich – nach oben">
+        <a href="/" onClick={handleLinkClick} className="flex items-center gap-2 font-display font-black text-xl uppercase tracking-tight" aria-label="Hive Club Zürich – nach oben">
           <HexMark className="size-8 text-accent-text" />
           <span
             aria-hidden={!pastHero}
@@ -44,6 +45,7 @@ export function Header() {
             <a
               key={n.id}
               href={n.href}
+              onClick={'external' in n ? undefined : handleLinkClick}
               {...('external' in n ? { target: '_blank', rel: 'noreferrer noopener' } : {})}
               className="rounded-full px-3 py-2 text-sm font-semibold text-muted transition-colors hover:text-fg"
             >
@@ -73,6 +75,7 @@ export function Header() {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.1 + i * 0.05 }}
                       href={n.href}
+                      onClick={'external' in n ? undefined : handleLinkClick}
                       {...('external' in n ? { target: '_blank', rel: 'noreferrer noopener' } : {})}
                       className="flex min-h-12 items-center justify-between border-b border-line text-xl font-bold hover:text-accent-text"
                     >

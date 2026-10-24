@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
-import { AlertCircle, ArrowLeft, CheckCircle2, ExternalLink, ImagePlus, Loader2, LogOut, Pencil, Plus, Trash2 } from 'lucide-react';
+import { AlertCircle, ArrowLeft, CheckCircle2, ExternalLink, ImagePlus, Loader2, LogOut, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { HexMark } from '@/components/Logo';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
+import { Combobox } from '@/components/ui/combobox';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { fmtDay, fmtMonth, fmtWeekday } from '@/lib/format';
-import { sortByStart, type ApiEvent } from '@/lib/events-api';
+import { sortByStart, type ApiEvent, type Dj } from '@/lib/events-api';
 import { cn } from '@/lib/utils';
 import { api, ApiError, fromStart, prepareImage, toStart, type EventInput } from './api';
+import { DjsView } from './DjsView';
 
 const KIND_LABEL = { club: 'Club', wellness: 'Wellness', dance: 'Tanzen' } as const;
 const SELECT = 'h-12 w-full rounded-xl border border-line bg-surface px-4 text-base text-fg focus-visible:border-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-text/40';
@@ -137,9 +139,13 @@ function List({ events, notice, onEdit, onNew, onDelete }: { events: ApiEvent[];
 
 // ---------- Editor ----------
 
-type Errors = Partial<Record<'title' | 'date' | 'time' | 'timeLabel' | 'blurb' | 'image' | 'form', string>>;
+type Errors = Partial<Record<'title' | 'date' | 'time' | 'timeLabel' | 'blurb' | 'link' | 'lineup' | 'image' | 'form', string>>;
 
-function Editor({ event, onCancel, onSaved }: { event: ApiEvent | null; onCancel: () => void; onSaved: (msg: string) => void }) {
+type LineupRow = { key: string; djId: string; time: string };
+let rowCounter = 0;
+const newRow = (djId = '', time = ''): LineupRow => ({ key: `r${++rowCounter}`, djId, time });
+
+function Editor({ event, djs, onDjCreated, onCancel, onSaved }: { event: ApiEvent | null; djs: Dj[]; onDjCreated: (dj: Dj) => void; onCancel: () => void; onSaved: (msg: string) => void }) {
   const init = event ? fromStart(event.start) : { date: '', time: '' };
   const [title, setTitle] = useState(event?.title ?? '');
   const [date, setDate] = useState(init.date);
@@ -150,6 +156,9 @@ function Editor({ event, onCancel, onSaved }: { event: ApiEvent | null; onCancel
   const [badge, setBadge] = useState(event?.badge ?? '');
   const [tagsText, setTagsText] = useState((event?.tags ?? []).join(', '));
   const [blurb, setBlurb] = useState(event?.blurb ?? '');
+  const [details, setDetails] = useState(event?.details ?? '');
+  const [link, setLink] = useState(event?.link ?? '');
+  const [lineup, setLineup] = useState<LineupRow[]>(() => (event?.lineup ?? []).map((l) => newRow(l.djId, l.time)));
   const [size, setSize] = useState<ApiEvent['size']>(event?.size ?? 'sm');
   const [featured, setFeatured] = useState(event?.featured ?? false);
   const [status, setStatus] = useState<ApiEvent['status']>(event?.status ?? 'draft');
@@ -176,6 +185,8 @@ function Editor({ event, onCancel, onSaved }: { event: ApiEvent | null; onCancel
     if (!title.trim()) e.title = 'Der Titel fehlt.';
     if (!date) e.date = 'Das Datum fehlt.';
     if (!time) e.time = 'Die Uhrzeit fehlt.';
+    if (lineup.some((r) => !r.djId && r.time)) e.lineup = 'Im Line-up fehlt bei einer Zeile der DJ. Wähle einen DJ oder entferne die Zeile.';
+    if (link.trim() && !/^https:\/\/\S+$/.test(link.trim())) e.link = 'Der Link muss mit https:// beginnen.';
     if (status === 'published') {
       if (!timeLabel.trim()) e.timeLabel = 'Zum Veröffentlichen braucht es eine Zeitangabe.';
       if (!blurb.trim()) e.blurb = 'Zum Veröffentlichen braucht es eine Beschreibung.';
@@ -199,6 +210,9 @@ function Editor({ event, onCancel, onSaved }: { event: ApiEvent | null; onCancel
       tag: tag.trim(),
       badge: badge.trim(),
       blurb: blurb.trim(),
+      details: details.trim(),
+      link: link.trim(),
+      lineup: lineup.filter((r) => r.djId).map((r) => ({ djId: r.djId, time: r.time })),
       size,
       featured,
       status,
@@ -261,6 +275,63 @@ function Editor({ event, onCancel, onSaved }: { event: ApiEvent | null; onCancel
             {...aria('blurb')}
           />
         </Field>
+        <Field label="Detailtext für die Eventseite (optional)" htmlFor={`${uid}-details`} hint={`Absätze mit einer Leerzeile trennen. ${details.length} von 3000 Zeichen`}>
+          <textarea
+            id={`${uid}-details`}
+            rows={8}
+            maxLength={3000}
+            value={details}
+            onChange={(e) => setDetails(e.target.value)}
+            className="w-full rounded-xl border border-line bg-surface px-4 py-3 text-base text-fg focus-visible:border-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-text/40"
+          />
+        </Field>
+        <Field label="Link, z. B. Tickets (optional)" htmlFor={`${uid}-link`} error={errors.link} hint="Erscheint als Button auf der Eventseite. Nur https://">
+          <Input id={`${uid}-link`} type="url" inputMode="url" value={link} onChange={(e) => setLink(e.target.value)} maxLength={300} placeholder="https://" {...aria('link')} />
+        </Field>
+      </section>
+
+      <section aria-labelledby={`${uid}-lineup`} className="grid gap-4 rounded-3xl border border-line bg-surface p-5 sm:p-6">
+        <div>
+          <h3 id={`${uid}-lineup`} className="text-lg font-extrabold">Line-up</h3>
+          <p className="mt-1 text-sm text-muted">DJ suchen oder neu anlegen und die Auftrittszeit eintragen. Beim Speichern wird nach Zeit sortiert (Zeiten nach Mitternacht folgen auf den Abend).</p>
+        </div>
+        {lineup.length === 0 && <p className="rounded-2xl border border-dashed border-line p-4 text-sm text-muted">Noch kein Line-up. Das Event zeigt dann keinen Line-up-Block.</p>}
+        <ul className="grid gap-3">
+          {lineup.map((row, i) => (
+            <li key={row.key} className="grid grid-cols-[1fr_auto] items-end gap-3 sm:grid-cols-[1fr_9rem_auto]">
+              <div className="col-span-2 sm:col-span-1">
+                <label htmlFor={`${uid}-dj-${row.key}`} className="mb-1.5 block text-sm font-bold">DJ {i + 1}</label>
+                <Combobox
+                  id={`${uid}-dj-${row.key}`}
+                  label={`DJ ${i + 1}`}
+                  options={djs.map((d) => ({ value: d.id, label: d.name, hint: d.resident ? 'Resident' : undefined }))}
+                  value={row.djId}
+                  onChange={(djId) => setLineup((l) => l.map((r) => (r.key === row.key ? { ...r, djId } : r)))}
+                  onCreate={async (name) => {
+                    try {
+                      const dj = await api.createDj(name, false);
+                      onDjCreated(dj);
+                      return dj.id;
+                    } catch (err) {
+                      setErrors((x) => ({ ...x, lineup: messageOf(err) }));
+                      return null;
+                    }
+                  }}
+                  invalid={!!errors.lineup && !row.djId && !!row.time}
+                />
+              </div>
+              <div>
+                <label htmlFor={`${uid}-t-${row.key}`} className="mb-1.5 block text-sm font-bold">Zeit</label>
+                <Input id={`${uid}-t-${row.key}`} type="time" value={row.time} onChange={(e) => setLineup((l) => l.map((r) => (r.key === row.key ? { ...r, time: e.target.value } : r)))} />
+              </div>
+              <Button type="button" variant="outline" size="icon" aria-label={`DJ ${i + 1} entfernen`} onClick={() => setLineup((l) => l.filter((r) => r.key !== row.key))}><X /></Button>
+            </li>
+          ))}
+        </ul>
+        {errors.lineup && <ErrorText>{errors.lineup}</ErrorText>}
+        <div>
+          <Button type="button" variant="outline" size="sm" onClick={() => setLineup((l) => [...l, newRow()])}><Plus /> DJ zum Line-up</Button>
+        </div>
       </section>
 
       <section aria-labelledby={`${uid}-look`} className="grid gap-4 rounded-3xl border border-line bg-surface p-5 sm:p-6">
@@ -350,6 +421,8 @@ function Editor({ event, onCancel, onSaved }: { event: ApiEvent | null; onCancel
 export default function AdminApp() {
   const [auth, setAuth] = useState<'checking' | 'out' | 'in'>('checking');
   const [events, setEvents] = useState<ApiEvent[] | null>(null);
+  const [djs, setDjs] = useState<Dj[] | null>(null);
+  const [tab, setTab] = useState<'events' | 'djs'>('events');
   const [view, setView] = useState<{ kind: 'list' } | { kind: 'edit'; event: ApiEvent | null }>({ kind: 'list' });
   const [notice, setNotice] = useState('');
   const [toDelete, setToDelete] = useState<ApiEvent | null>(null);
@@ -372,7 +445,9 @@ export default function AdminApp() {
   const reload = useCallback(async () => {
     try {
       setLoadError('');
-      setEvents(await api.list());
+      const [list, people] = await Promise.all([api.list(), api.listDjs()]);
+      setEvents(list);
+      setDjs(people);
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) setAuth('out');
       else setLoadError(messageOf(err));
@@ -384,6 +459,8 @@ export default function AdminApp() {
   async function logout() {
     await api.logout().catch(() => undefined);
     setEvents(null);
+    setDjs(null);
+    setTab('events');
     setView({ kind: 'list' });
     setNotice('');
     setAuth('out');
@@ -424,23 +501,44 @@ export default function AdminApp() {
 
       <main>
         {loadError && <div role="alert" className="mb-4 rounded-2xl border border-red-400/60 p-4"><ErrorText>{loadError}</ErrorText></div>}
-        {events === null && !loadError ? (
-          <p role="status" className="text-muted">Events werden geladen …</p>
-        ) : view.kind === 'edit' ? (
+        {(events === null || djs === null) && !loadError ? (
+          <p role="status" className="text-muted">Wird geladen …</p>
+        ) : events && djs && view.kind === 'edit' ? (
           <Editor
             key={view.event?.id ?? 'new'}
             event={view.event}
+            djs={djs}
+            onDjCreated={(dj) => setDjs((list) => [...(list ?? []), dj])}
             onCancel={() => setView({ kind: 'list' })}
             onSaved={async (msg) => { await reload(); setNotice(msg); setView({ kind: 'list' }); }}
           />
-        ) : events ? (
-          <List
-            events={events}
-            notice={notice}
-            onNew={() => { setNotice(''); setView({ kind: 'edit', event: null }); }}
-            onEdit={(e) => { setNotice(''); setView({ kind: 'edit', event: e }); }}
-            onDelete={(e) => { returnFocus.current = document.activeElement as HTMLElement | null; setToDelete(e); }}
-          />
+        ) : events && djs ? (
+          <>
+            <nav aria-label="Bereiche" className="mb-8 flex gap-2 border-b border-line pb-4">
+              {([['events', 'Events'], ['djs', 'DJs']] as const).map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  aria-current={tab === id ? 'page' : undefined}
+                  onClick={() => { setTab(id); setNotice(''); }}
+                  className={cn('min-h-11 rounded-full border px-5 text-sm font-bold uppercase tracking-wider transition-colors', tab === id ? 'border-accent bg-accent text-accent-fg' : 'border-line hover:border-accent-text hover:text-accent-text')}
+                >
+                  {label}
+                </button>
+              ))}
+            </nav>
+            {tab === 'events' ? (
+              <List
+                events={events}
+                notice={notice}
+                onNew={() => { setNotice(''); setView({ kind: 'edit', event: null }); }}
+                onEdit={(e) => { setNotice(''); setView({ kind: 'edit', event: e }); }}
+                onDelete={(e) => { returnFocus.current = document.activeElement as HTMLElement | null; setToDelete(e); }}
+              />
+            ) : (
+              <DjsView djs={djs} events={events} onChange={reload} />
+            )}
+          </>
         ) : null}
       </main>
 

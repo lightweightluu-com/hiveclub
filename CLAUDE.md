@@ -48,7 +48,8 @@ als Static Assets aus; der Worker läuft nur für `/api/*` und `/img/*`
   `wrangler.jsonc` ein.
 - **KV-Schlüssel:** `idx` (JSON-Liste der IDs, neueste zuerst), `t:<id>` (Event als
   JSON), `img:<id>:flyer` (Bild, Content-Type in den KV-Metadaten),
-  `s:<sessionId>` (Session, TTL 7 Tage), `rl:<ip>` (Fehlversuche, TTL 10 Min).
+  `djs` (JSON-Liste aller DJs `{ id, name, resident }`), `s:<sessionId>` (Session, TTL
+  7 Tage), `rl:<ip>` (Fehlversuche, TTL 10 Min).
   IDs sind 16 Hex-Zeichen aus `crypto.getRandomValues`.
 - **Erststart:** Ist `idx` leer (nicht vorhanden), legt der Worker beim ersten Aufruf
   die Events aus `src/data/club.ts` (`EVENTS`) an, alle veröffentlicht. Danach
@@ -56,6 +57,24 @@ als Static Assets aus; der Worker läuft nur für `/api/*` und `/img/*`
   erreichbar ist (z. B. `npm run dev` ohne Worker oder offline).
 - **Öffentlich:** `GET /api/events` (nur veröffentlichte), `GET /img/<id>` (Flyer,
   nur bei veröffentlichten Events, sonst 404; Browser-Cache 60 s).
+- **DJs & Residents:** DJs werden im Admin (Tab „DJs“) erfasst, entweder als normaler
+  DJ (nur für Line-ups) oder als **Resident**. Residents erscheinen automatisch im
+  Band der Startseite (`GET /api/residents`, alphabetisch; ohne Backend gilt
+  `RESIDENTS` aus `src/data/club.ts`). Beim ersten Zugriff legt der Worker die bisherigen
+  Residents aus `RESIDENTS` an. Namen sind eindeutig (Gross-/Kleinschreibung egal);
+  Löschen entfernt den DJ aus allen Line-ups.
+- **Line-up:** Pro Event eine Liste aus DJ (Dropdown mit Suche, unbekannte Namen lassen
+  sich direkt als neuer DJ anlegen) und Zeit (`HH:MM`, optional), höchstens 50 Einträge.
+  Gespeichert wird `{ djId, time }`, sortiert nach Auftrittszeit (Zeiten vor dem
+  Beginn des Events gelten als nach Mitternacht). Die öffentliche API liefert die Namen
+  bereits aufgelöst (`lineup: [{ name, time, resident? }]`).
+- **Detailseite:** `/events/<id>` (Client-Routing in `src/lib/router.ts`, Daten aus
+  `GET /api/events`; Entwürfe und unbekannte IDs zeigen den Hinweis „Dieses Event
+  gibt es nicht mehr“). Zeigt Flyer, Beschreibung (`blurb`), optionalen
+  Detailtext (`details`, ≤ 3000 Zeichen, Absätze per Leerzeile), Stichwörter,
+  Line-up, Ort, Kalender-Download (.ics), Teilen und optional einen https-Link (`link`,
+  z. B. Tickets). Interne Links nutzen `handleLinkClick`; Links auf die alte Seite
+  hiveclub.ch gibt es bei Events nicht mehr.
 - **Admin:** `/admin` (noindex per Meta und `Disallow: /admin` in `robots.txt`),
   API unter `/api/admin/*`. Events anlegen, bearbeiten, löschen, als Entwurf
   ausblenden oder veröffentlichen, Flyer hochladen.
