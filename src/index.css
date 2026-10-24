@@ -1,6 +1,6 @@
 @import 'tailwindcss';
 
-/* Design-Tokens: hell ist Standard (Farben von hiveclub.ch), dunkel über data-theme="dark". */
+/* Design-Tokens: dunkel ist Standard, hell (Farben von hiveclub.ch) über data-theme="light". */
 /* Archivo Black lokal einbinden (offline-fähig); Gewichtsbereich verhindert Fake-Bold bei font-black. */
 @font-face {
   font-family: 'Archivo Black';
@@ -13,6 +13,21 @@
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
 :root {
+  color-scheme: dark;
+  --bg: #0b0a09;
+  --surface: rgb(24 24 27 / 0.8);   /* zinc-900 / 80 */
+  --surface-2: #1c1917;
+  --fg: #f5f2ec;
+  --muted: #a8a29e;
+  --line: rgb(245 158 11 / 0.2);    /* amber-500 / 20 */
+  --accent: #f59e0b;                /* Bernstein */
+  --accent-fg: #0b0a09;
+  --accent-text: #fbbf24;           /* Gold */
+  --violet: #d97706;
+  --blue: #fbbf24;
+  --hex: rgb(245 158 11 / 0.12);
+}
+:root[data-theme='light'] {
   color-scheme: light;
   --bg: #f5f2ec;
   --surface: #ffffff;
@@ -26,21 +41,6 @@
   --violet: #d9660e;
   --blue: #c66606;
   --hex: rgb(10 10 10 / 0.09);
-}
-:root[data-theme='dark'] {
-  color-scheme: dark;
-  --bg: #0d0b09;
-  --surface: #17130f;
-  --surface-2: #221c16;
-  --fg: #f5f2ec;
-  --muted: #b3aca1;
-  --line: rgb(245 242 236 / 0.13);
-  --accent: #e77929;          /* gleiches Hive-Orange wie im Lightmode */
-  --accent-fg: #0a0a0a;
-  --accent-text: #f28c28;
-  --violet: #c66606;
-  --blue: #f28c28;
-  --hex: rgb(245 242 236 / 0.07);
 }
 
 @theme inline {
@@ -115,3 +115,13 @@ body {
 .hero-in { animation: rise-sm 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; animation-delay: var(--d, 0s); }
 .letter-in { display: inline-block; animation: rise 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; animation-delay: calc(var(--d, 0s) + var(--i, 0) * 35ms); }
 .dock-in { animation: rise-sm 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) 0.6s backwards; }
+
+/* Hex-Hintergrund: langsames Atmen und Driften (nur transform/opacity → läuft auf dem Compositor). */
+@keyframes hex-breathe { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+@keyframes hex-drift {
+  0% { transform: translate3d(-8%, 6%, 0) scale(1); opacity: 0.45; }
+  50% { opacity: 0.9; }
+  100% { transform: translate3d(8%, -6%, 0) scale(1.18); opacity: 0.45; }
+}
+.hex-breathe { animation: hex-breathe 9s ease-in-out infinite; }
+.hex-drift { animation: hex-drift 16s ease-in-out infinite alternate; }

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ArrowDown, CalendarDays, MapPin } from 'lucide-react';
+import { ArrowUpRight, CalendarDays, MapPin } from 'lucide-react';
 import { EVENTS } from '@/data/club';
 import { Aurora } from '@/components/magic/aurora';
 import { HexField } from '@/components/magic/hex-field';
@@ -34,7 +34,7 @@ export function Hero() {
       </motion.div>
       <div aria-hidden className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,var(--bg)_85%)]" />
 
-      <div className="relative mx-auto flex w-full max-w-7xl flex-1 flex-col justify-center px-4 pb-44 pt-24 sm:px-6">
+      <div className="relative mx-auto flex w-full max-w-7xl flex-1 flex-col justify-center px-4 pb-6 pt-20 sm:px-6">
         <p
           style={{ ['--d' as string]: '0.1s' }}
           className="hero-in mb-4 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.3em] text-accent-text sm:text-sm"
@@ -42,7 +42,7 @@ export function Hero() {
           <MapPin className="size-4" /> Zürich West · Geroldstrasse 5
         </p>
 
-        <h1 className="text-display text-[clamp(5rem,min(28vw,24vh),16rem)] text-fg">
+        <h1 className="text-display text-[clamp(4.5rem,min(28vw,19vh),15rem)] text-fg">
           <TextReveal text="HIVE" delay={0.15} />
           <span className="block text-[clamp(1.05rem,5.6vw,3.75rem)] tracking-[-0.02em] text-accent-text">
             <TextReveal text="Morphing Clubbing" delay={0.4} />
@@ -58,15 +58,17 @@ export function Hero() {
 
         <div
           style={{ ['--d' as string]: '0.85s' }}
-          className="hero-in mt-8 flex flex-col gap-6 lg:flex-row lg:items-end"
+          className="hero-in mt-6 flex w-full max-w-md flex-col gap-3"
         >
           <a
             href="#programm"
-            className="group block w-full max-w-md rounded-3xl border border-line bg-surface/85 p-5 transition-colors hover:border-accent-text"
+            aria-label={`${ev.title} – ${fmtWeekday(ev.start)}, ${ev.timeLabel}: zum Programm`}
+            className="group block w-full cursor-pointer rounded-3xl border border-line bg-surface p-5 transition-all duration-200 hover:border-amber-500/50 hover:shadow-[0_0_32px_-10px_var(--accent)] active:scale-[0.99]"
           >
             <p className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-accent-text">
               <span className="relative flex size-2"><span className="absolute inline-flex size-full animate-ping rounded-full bg-accent opacity-75" /><span className="relative inline-flex size-2 rounded-full bg-accent" /></span>
               Als Nächstes
+              <ArrowUpRight aria-hidden className="ml-auto size-5 text-fg/70 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-accent-text group-active:-translate-y-0.5 group-active:translate-x-0.5" />
             </p>
             <div className="flex items-center gap-4">
               <div className="grid size-16 shrink-0 place-items-center rounded-2xl bg-accent text-accent-fg">
@@ -80,17 +82,22 @@ export function Hero() {
                 <p className="text-sm text-muted">{fmtWeekday(ev.start)} · {ev.timeLabel}</p>
               </div>
             </div>
+            <ul className="mt-3 flex flex-wrap gap-1.5">
+              {ev.tags.map((t) => (
+                <li key={t} className="rounded-full border border-line bg-bg/40 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-fg/80">{t}</li>
+              ))}
+            </ul>
             <div className="mt-4"><Countdown to={ev.start} /></div>
           </a>
 
-          <div className="flex flex-wrap gap-3">
-            <Button asChild><a href="#programm"><CalendarDays /> Programm</a></Button>
-            <Button asChild variant="outline"><a href="#info"><MapPin /> Anfahrt</a></Button>
+          <div className="grid w-full grid-cols-2 gap-3">
+            <Button asChild className="w-full justify-center"><a href="#programm"><CalendarDays /> Programm</a></Button>
+            <Button asChild variant="outline" className="w-full justify-center"><a href="#info"><MapPin /> Anfahrt</a></Button>
           </div>
         </div>
       </div>
 
-      <div className="absolute inset-x-0 bottom-0 border-y border-line bg-bg/80 py-3">
+      <div className="relative mb-32 border-y border-line bg-bg/80 py-3">
         <Marquee duration={30}>
           {['Techno', 'House', 'Techhouse', 'Deep House', 'Elektro', 'Morphing Clubbing', 'Do · Fr · Sa'].map((w) => (
             <span key={w} className="flex items-center gap-8 pr-8 font-display font-black text-2xl uppercase tracking-tight text-fg/80">
@@ -99,9 +106,6 @@ export function Hero() {
           ))}
         </Marquee>
       </div>
-      <a href="#programm" aria-label="Zum Programm scrollen" className="absolute bottom-20 left-1/2 hidden -translate-x-1/2 text-muted md:block">
-        <ArrowDown className="size-6 animate-bounce" />
-      </a>
     </section>
   );
 }

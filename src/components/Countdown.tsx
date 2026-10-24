@@ -19,8 +19,8 @@ export function Countdown({ to }: { to: string }) {
   return (
     <div role="timer" aria-label={`Noch ${p.d} Tage, ${p.h} Stunden, ${p.m} Minuten`} className="flex gap-2">
       {cells.map(([v, l]) => (
-        <div key={l} className="min-w-14 rounded-xl border border-line bg-surface/60 px-2 py-2 text-center">
-          <div className="font-display font-black text-2xl tabular-nums">{String(v).padStart(2, '0')}</div>
+        <div key={l} className="w-14 rounded-xl border border-line bg-surface/60 px-1 py-2 text-center">
+          <div className="font-display font-black text-2xl tabular-nums [font-variant-numeric:tabular-nums]">{String(v).padStart(2, '0')}</div>
           <div className="text-[10px] font-bold uppercase tracking-widest text-muted">{l}</div>
         </div>
       ))}

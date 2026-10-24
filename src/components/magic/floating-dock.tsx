@@ -20,10 +20,11 @@ function DockIcon({ mouseX, item }: { mouseX: MotionValue<number>; item: DockIte
       {...(item.external ? { target: '_blank', rel: 'noreferrer noopener' } : {})}
       style={{ width: size, height: size }}
       className={`group/d relative grid aspect-square place-items-center rounded-full border text-fg transition-colors ${
-        item.active ? 'border-accent-text bg-accent text-accent-fg' : 'border-line bg-surface-2/80 hover:border-accent-text'
+        item.active ? 'border-accent bg-accent text-accent-fg shadow-[0_0_20px_-2px_var(--accent)]' : 'border-line bg-surface-2/80 hover:border-accent-text'
       }`}
     >
       <span className="[&_svg]:size-5">{item.icon}</span>
+      {item.active && <span aria-hidden className="absolute -bottom-2 size-1.5 rounded-full bg-accent" />}
       <span className="pointer-events-none absolute -top-9 hidden whitespace-nowrap rounded-md border border-line bg-surface px-2 py-1 text-xs font-semibold opacity-0 transition-opacity group-hover/d:opacity-100 md:block">
         {item.label}
       </span>
@@ -39,7 +40,7 @@ export function FloatingDock({ items }: { items: DockItem[] }) {
       <motion.div
         onMouseMove={(e) => mouseX.set(e.clientX)}
         onMouseLeave={() => mouseX.set(Infinity)}
-        className="dock-in pointer-events-auto flex h-[72px] items-end gap-3 rounded-full border border-line bg-bg/90 px-3 pb-3 shadow-lg"
+        className="dock-in pointer-events-auto flex h-[72px] items-end gap-3 rounded-full border border-black/10 bg-white/80 px-3 pb-4 shadow-2xl backdrop-blur-xl dark:border-white/15 dark:bg-zinc-900/85"
       >
         {items.map((it) => (
           <DockIcon key={it.id} mouseX={mouseX} item={it} />

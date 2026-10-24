@@ -8,8 +8,12 @@ import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle, SheetTri
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
+  const [pastHero, setPastHero] = useState(false);
   useEffect(() => {
-    const on = () => setScrolled(window.scrollY > 24);
+    const on = () => {
+      setScrolled(window.scrollY > 24);
+      setPastHero(window.scrollY > 120);
+    };
     on();
     window.addEventListener('scroll', on, { passive: true });
     return () => window.removeEventListener('scroll', on);
@@ -27,7 +31,12 @@ export function Header() {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
         <a href="#top" className="flex items-center gap-2 font-display font-black text-xl uppercase tracking-tight" aria-label="Hive Club Zürich – nach oben">
           <HexMark className="size-8 text-accent-text" />
-          Hive
+          <span
+            aria-hidden={!pastHero}
+            className={`transition-[opacity,transform] duration-300 ease-out ${pastHero ? 'translate-x-0 opacity-100' : '-translate-x-2 opacity-0'}`}
+          >
+            Hive
+          </span>
         </a>
 
         <nav aria-label="Hauptnavigation" className="hidden items-center gap-1 xl:flex">
@@ -48,7 +57,7 @@ export function Header() {
         <Sheet>
           <SheetTrigger
             aria-label="Menü öffnen"
-            className="grid size-11 place-items-center rounded-full border border-line bg-surface/80 transition-colors hover:border-accent-text xl:hidden"
+            className="hidden size-11 place-items-center rounded-full border border-line bg-surface/80 transition-colors hover:border-accent-text md:grid xl:hidden"
           >
             <Menu className="size-5" />
           </SheetTrigger>

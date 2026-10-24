@@ -31,7 +31,17 @@ export function HexField({ className }: { className?: string }) {
   const spot = 'radial-gradient(280px circle at var(--mx, 50%) var(--my, 40%), #000, transparent 70%)';
   return (
     <div ref={ref} aria-hidden className={cn('pointer-events-none absolute inset-0', className)}>
-      <div className="absolute inset-0 bg-[var(--hex)]" style={{ WebkitMaskImage: HEX, maskImage: HEX }} />
+      <div className="hex-breathe absolute inset-0 bg-[var(--hex)]" style={{ WebkitMaskImage: HEX, maskImage: HEX }} />
+      {/* Ambient-Glow: wandert langsam über das Raster, auch ohne Zeiger (Touch). */}
+      <div
+        className="hex-drift absolute -inset-[15%] bg-accent will-change-transform"
+        style={{
+          WebkitMaskImage: `${HEX}, radial-gradient(closest-side at 50% 45%, #000, transparent 75%)`,
+          maskImage: `${HEX}, radial-gradient(closest-side at 50% 45%, #000, transparent 75%)`,
+          WebkitMaskComposite: 'source-in',
+          maskComposite: 'intersect'
+        }}
+      />
       <div
         className="absolute inset-0 bg-accent"
         style={{

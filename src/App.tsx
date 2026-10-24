@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, useScroll, useSpring } from 'framer-motion';
-import { CalendarDays, Info as InfoIcon, Mail, Music2 } from 'lucide-react';
-import { Instagram } from '@/components/BrandIcons';
+import { CalendarDays, House, MapPin, Music2 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { FloatingDock, type DockItem } from '@/components/magic/floating-dock';
 import { Hero } from '@/sections/Hero';
@@ -12,16 +11,24 @@ import { Info } from '@/sections/Info';
 import { Newsletter } from '@/sections/Newsletter';
 import { Footer } from '@/sections/Footer';
 
-const IDS = ['top', 'programm', 'community', 'info', 'newsletter'] as const;
+/** Dock-Ziel → Sektionen, die dazugehören (damit der Active-State auch in Unterabschnitten stimmt). */
+const GROUPS: Record<string, string[]> = {
+  top: ['top'],
+  programm: ['programm'],
+  community: ['community', 'raumvermietung', 'wohlfuehlen', 'about'],
+  info: ['info', 'hausregeln', 'newsletter']
+};
 
 function useActiveSection() {
   const [active, setActive] = useState<string>('top');
   useEffect(() => {
+    const owner = new Map<string, string>();
+    Object.entries(GROUPS).forEach(([g, ids]) => ids.forEach((id) => owner.set(id, g)));
     const io = new IntersectionObserver(
-      (es) => es.forEach((e) => e.isIntersecting && setActive(e.target.id)),
+      (es) => es.forEach((e) => e.isIntersecting && setActive(owner.get(e.target.id) ?? 'top')),
       { rootMargin: '-45% 0px -50% 0px' }
     );
-    IDS.forEach((id) => { const el = document.getElementById(id); if (el) io.observe(el); });
+    owner.forEach((_, id) => { const el = document.getElementById(id); if (el) io.observe(el); });
     return () => io.disconnect();
   }, []);
   return active;
@@ -33,11 +40,10 @@ export default function App() {
   const bar = useSpring(scrollYProgress, { stiffness: 120, damping: 30 });
 
   const dock: DockItem[] = [
+    { id: 'top', label: 'Home', href: '#top', icon: <House />, active: active === 'top' },
     { id: 'programm', label: 'Programm', href: '#programm', icon: <CalendarDays />, active: active === 'programm' },
-    { id: 'community', label: 'Community', href: '#community', icon: <Music2 />, active: active === 'community' },
-    { id: 'info', label: 'Info', href: '#info', icon: <InfoIcon />, active: active === 'info' },
-    { id: 'newsletter', label: 'Newsletter', href: '#newsletter', icon: <Mail />, active: active === 'newsletter' },
-    { id: 'instagram', label: 'Instagram', href: 'https://www.instagram.com/hive_club/', icon: <Instagram />, external: true }
+    { id: 'community', label: 'Residents & Musik', href: '#community', icon: <Music2 />, active: active === 'community' },
+    { id: 'info', label: 'Club-Info', href: '#info', icon: <MapPin />, active: active === 'info' }
   ];
 
   return (
