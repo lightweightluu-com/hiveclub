@@ -125,3 +125,5 @@ body {
 }
 .hex-breathe { animation: hex-breathe 9s ease-in-out infinite; }
 .hex-drift { animation: hex-drift 16s ease-in-out infinite alternate; }
+
+.page-in { animation: rise-sm 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }

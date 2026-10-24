@@ -56,6 +56,13 @@ als Static Assets aus; der Worker läuft nur für `/api/*` und `/img/*`
   erreichbar ist (z. B. `npm run dev` ohne Worker oder offline).
 - **Öffentlich:** `GET /api/events` (nur veröffentlichte), `GET /img/<id>` (Flyer,
   nur bei veröffentlichten Events, sonst 404; Browser-Cache 60 s).
+- **Detailseite:** `/events/<id>` (Client-Routing in `src/lib/router.ts`, Daten aus
+  `GET /api/events`; Entwürfe und unbekannte IDs zeigen den Hinweis „Dieses Event
+  gibt es nicht mehr“). Zeigt Flyer, Beschreibung (`blurb`), optionalen
+  Detailtext (`details`, ≤ 3000 Zeichen, Absätze per Leerzeile), Stichwörter,
+  Ort, Kalender-Download (.ics), Teilen und optional einen https-Link (`link`,
+  z. B. Tickets). Interne Links nutzen `handleLinkClick`; Links auf die alte Seite
+  hiveclub.ch gibt es bei Events nicht mehr.
 - **Admin:** `/admin` (noindex per Meta und `Disallow: /admin` in `robots.txt`),
   API unter `/api/admin/*`. Events anlegen, bearbeiten, löschen, als Entwurf
   ausblenden oder veröffentlichen, Flyer hochladen.

@@ -23,6 +23,8 @@ const jsonBody = (data: unknown) => ({ body: JSON.stringify(data), headers: { 'c
 
 export type EventInput = Pick<ApiEvent, 'title' | 'start' | 'timeLabel' | 'kind' | 'tag' | 'blurb' | 'size' | 'tags'> & {
   badge: string;
+  details: string;
+  link: string;
   featured: boolean;
   status: ApiEvent['status'];
 };

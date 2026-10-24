@@ -137,7 +137,7 @@ function List({ events, notice, onEdit, onNew, onDelete }: { events: ApiEvent[];
 
 // ---------- Editor ----------
 
-type Errors = Partial<Record<'title' | 'date' | 'time' | 'timeLabel' | 'blurb' | 'image' | 'form', string>>;
+type Errors = Partial<Record<'title' | 'date' | 'time' | 'timeLabel' | 'blurb' | 'link' | 'image' | 'form', string>>;
 
 function Editor({ event, onCancel, onSaved }: { event: ApiEvent | null; onCancel: () => void; onSaved: (msg: string) => void }) {
   const init = event ? fromStart(event.start) : { date: '', time: '' };
@@ -150,6 +150,8 @@ function Editor({ event, onCancel, onSaved }: { event: ApiEvent | null; onCancel
   const [badge, setBadge] = useState(event?.badge ?? '');
   const [tagsText, setTagsText] = useState((event?.tags ?? []).join(', '));
   const [blurb, setBlurb] = useState(event?.blurb ?? '');
+  const [details, setDetails] = useState(event?.details ?? '');
+  const [link, setLink] = useState(event?.link ?? '');
   const [size, setSize] = useState<ApiEvent['size']>(event?.size ?? 'sm');
   const [featured, setFeatured] = useState(event?.featured ?? false);
   const [status, setStatus] = useState<ApiEvent['status']>(event?.status ?? 'draft');
@@ -176,6 +178,7 @@ function Editor({ event, onCancel, onSaved }: { event: ApiEvent | null; onCancel
     if (!title.trim()) e.title = 'Der Titel fehlt.';
     if (!date) e.date = 'Das Datum fehlt.';
     if (!time) e.time = 'Die Uhrzeit fehlt.';
+    if (link.trim() && !/^https:\/\/\S+$/.test(link.trim())) e.link = 'Der Link muss mit https:// beginnen.';
     if (status === 'published') {
       if (!timeLabel.trim()) e.timeLabel = 'Zum Veröffentlichen braucht es eine Zeitangabe.';
       if (!blurb.trim()) e.blurb = 'Zum Veröffentlichen braucht es eine Beschreibung.';
@@ -199,6 +202,8 @@ function Editor({ event, onCancel, onSaved }: { event: ApiEvent | null; onCancel
       tag: tag.trim(),
       badge: badge.trim(),
       blurb: blurb.trim(),
+      details: details.trim(),
+      link: link.trim(),
       size,
       featured,
       status,
@@ -260,6 +265,19 @@ function Editor({ event, onCancel, onSaved }: { event: ApiEvent | null; onCancel
             className="w-full rounded-xl border border-line bg-surface px-4 py-3 text-base text-fg focus-visible:border-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-text/40 aria-[invalid=true]:border-red-400"
             {...aria('blurb')}
           />
+        </Field>
+        <Field label="Detailtext für die Eventseite (optional)" htmlFor={`${uid}-details`} hint={`Absätze mit einer Leerzeile trennen. ${details.length} von 3000 Zeichen`}>
+          <textarea
+            id={`${uid}-details`}
+            rows={8}
+            maxLength={3000}
+            value={details}
+            onChange={(e) => setDetails(e.target.value)}
+            className="w-full rounded-xl border border-line bg-surface px-4 py-3 text-base text-fg focus-visible:border-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-text/40"
+          />
+        </Field>
+        <Field label="Link, z. B. Tickets (optional)" htmlFor={`${uid}-link`} error={errors.link} hint="Erscheint als Button auf der Eventseite. Nur https://">
+          <Input id={`${uid}-link`} type="url" inputMode="url" value={link} onChange={(e) => setLink(e.target.value)} maxLength={300} placeholder="https://" {...aria('link')} />
         </Field>
       </section>
 

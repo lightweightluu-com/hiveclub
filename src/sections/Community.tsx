@@ -1,5 +1,5 @@
 import { Disc3, Flower2, Heart, Key, UtensilsCrossed } from 'lucide-react';
-import { RESIDENTS, SERIES, SISTER_PROJECTS, SITE, WELLNESS } from '@/data/club';
+import { ADDRESS, RESIDENTS, SERIES, SISTER_PROJECTS, WELLNESS } from '@/data/club';
 import { GlowCard } from '@/components/magic/glow-card';
 import { Marquee } from '@/components/magic/marquee';
 import { Reveal } from '@/components/magic/text-reveal';
@@ -55,7 +55,7 @@ export function Community() {
               </p>
             </div>
             <div className="flex flex-col gap-3 lg:items-end">
-              <Button asChild size="default"><a href={SITE} target="_blank" rel="noreferrer noopener">Anfrage starten</a></Button>
+              <Button asChild size="default"><a href={ADDRESS.phoneHref}>Anfrage per Telefon</a></Button>
               <Button asChild variant="outline"><a href="#info">Kontakt & Adresse</a></Button>
             </div>
           </GlowCard>

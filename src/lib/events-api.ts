@@ -16,6 +16,10 @@ export const sortByStart = <T extends { start: string }>(list: T[]) =>
   [...list].sort((a, b) => +new Date(a.start) - +new Date(b.start));
 
 let pending: Promise<PublicEvent[]> | null = null;
+let cache: PublicEvent[] | null = null;
+
+/** Bereits geladene Events, damit eine zurückgekehrte Seite sofort in voller Höhe rendert (Scroll-Wiederherstellung). */
+export const cachedEvents = () => cache;
 
 /** Öffentliche Events. Ohne erreichbares Backend (z. B. lokal oder offline) gelten die eingebauten Ausgangsdaten. */
 export function loadEvents(): Promise<PublicEvent[]> {
@@ -25,6 +29,7 @@ export function loadEvents(): Promise<PublicEvent[]> {
       return r.json() as Promise<{ events: PublicEvent[] }>;
     })
     .then((d) => sortByStart(d.events))
-    .catch(() => sortByStart(EVENTS));
+    .catch(() => sortByStart(EVENTS))
+    .then((list) => (cache = list));
   return pending;
 }

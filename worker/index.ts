@@ -142,6 +142,14 @@ function parseEvent(body: Record<string, unknown>, base: StoredEvent | null) {
   const tags = ((body.tags as unknown[] | undefined) ?? []).map((t) => str(t, 30, 'Ein Stichwort')).filter(Boolean);
   if (tags.length > 6) throw new HttpError(400, 'Maximal 6 Stichwörter erlaubt.');
 
+  const details = str(body.details, 3000, 'Der Detailtext');
+  const link = str(body.link, 300, 'Der Link');
+  if (link) {
+    let ok = false;
+    try { ok = new URL(link).protocol === 'https:'; } catch { /* ungültig */ }
+    if (!ok) throw new HttpError(400, 'Der Link muss mit https:// beginnen.');
+  }
+
   const fields = {
     title,
     start,
@@ -152,6 +160,8 @@ function parseEvent(body: Record<string, unknown>, base: StoredEvent | null) {
     size: size as ClubEvent['size'],
     tags,
     ...(str(body.badge, 20, 'Das Badge') ? { badge: str(body.badge, 20, 'Das Badge') } : {}),
+    ...(details ? { details } : {}),
+    ...(link ? { link } : {}),
     ...(body.featured === true ? { featured: true } : {})
   };
   return { fields, status: status as StoredEvent['status'] };

@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { handleLinkClick } from '@/lib/router';
 import { motion, useMotionValue, useSpring, useTransform, type MotionValue } from 'framer-motion';
 
 export type DockItem = { id: string; label: string; href: string; icon: React.ReactNode; external?: boolean; active?: boolean };
@@ -15,6 +16,7 @@ function DockIcon({ mouseX, item }: { mouseX: MotionValue<number>; item: DockIte
     <motion.a
       ref={ref}
       href={item.href}
+      onClick={item.external ? undefined : handleLinkClick}
       aria-label={item.label}
       aria-current={item.active ? 'true' : undefined}
       {...(item.external ? { target: '_blank', rel: 'noreferrer noopener' } : {})}
