@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { ArrowUpRight, CalendarDays, MapPin } from 'lucide-react';
-import type { ClubEvent } from '@/data/club';
+import { pickNext } from '@/lib/events-api';
 import { useEvents } from '@/lib/use-events';
 import { eventPath, handleLinkClick } from '@/lib/router';
 import { Aurora } from '@/components/magic/aurora';
@@ -13,14 +13,9 @@ import { HexMark } from '@/components/Logo';
 import { Button } from '@/components/ui/button';
 import { fmtDay, fmtMonth, fmtWeekday } from '@/lib/format';
 
-export function nextEvent(list: ClubEvent[], now = Date.now()) {
-  const sorted = [...list].sort((a, b) => +new Date(a.start) - +new Date(b.start));
-  return sorted.find((e) => +new Date(e.start) > now) ?? sorted[sorted.length - 1];
-}
-
 export function Hero() {
   const events = useEvents();
-  const ev = events && events.length > 0 ? nextEvent(events) : null;
+  const ev = events ? pickNext(events) : null;
 
   return (
     <section id="top" className="relative isolate flex min-h-[100svh] flex-col overflow-hidden">

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
-import { AlertCircle, ArrowLeft, CheckCircle2, ExternalLink, ImagePlus, Loader2, LogOut, Pencil, Plus, Trash2, X } from 'lucide-react';
+import { AlertCircle, Archive, ArrowLeft, CheckCircle2, ExternalLink, ImagePlus, Loader2, LogOut, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { HexMark } from '@/components/Logo';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,7 @@ import { Combobox } from '@/components/ui/combobox';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { fmtDay, fmtMonth, fmtWeekday } from '@/lib/format';
+import { isArchived } from '@/lib/archive';
 import { sortByStart, type ApiEvent, type Dj } from '@/lib/events-api';
 import { cn } from '@/lib/utils';
 import { api, ApiError, fromStart, prepareImage, toStart, type EventInput } from './api';
@@ -99,8 +100,39 @@ function StatusBadge({ status }: { status: ApiEvent['status'] }) {
   );
 }
 
+function EventRow({ e, archived, onEdit, onDelete }: { e: ApiEvent; archived: boolean; onEdit: (e: ApiEvent) => void; onDelete: (e: ApiEvent) => void }) {
+  return (
+    <li className={cn('flex flex-wrap items-center gap-4 rounded-3xl border border-line bg-surface p-4 sm:p-5', archived && 'opacity-80')}>
+      <time dateTime={e.start} className="grid size-16 shrink-0 place-items-center rounded-2xl bg-surface-2 text-center leading-none">
+        <span>
+          <span className="block font-display font-black text-2xl">{fmtDay(e.start)}</span>
+          <span className="block text-[11px] font-bold uppercase text-muted">{fmtMonth(e.start)}</span>
+        </span>
+      </time>
+      <div className="min-w-0 flex-1 basis-48">
+        <h4 className="truncate text-lg font-extrabold">{e.title}</h4>
+        <p className="text-sm text-muted">{fmtWeekday(e.start)} · {e.timeLabel || 'Zeit offen'}</p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          <StatusBadge status={e.status} />
+          {archived && (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-line px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-muted">
+              <Archive aria-hidden className="size-3.5" /> Archiviert
+            </span>
+          )}
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <Button variant="outline" size="sm" onClick={() => onEdit(e)} aria-label={`${e.title} bearbeiten`}><Pencil /> Bearbeiten</Button>
+        <Button variant="outline" size="icon" onClick={() => onDelete(e)} aria-label={`${e.title} löschen`}><Trash2 /></Button>
+      </div>
+    </li>
+  );
+}
+
 function List({ events, notice, onEdit, onNew, onDelete }: { events: ApiEvent[]; notice: string; onEdit: (e: ApiEvent) => void; onNew: () => void; onDelete: (e: ApiEvent) => void }) {
-  const sorted = sortByStart(events).reverse();
+  // Vergangene Events wandern automatisch ins Archiv (gleiche Regel wie auf der Website).
+  const upcoming = sortByStart(events.filter((e) => !isArchived(e.start)));
+  const archive = sortByStart(events.filter((e) => isArchived(e.start))).reverse();
   return (
     <>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -108,30 +140,30 @@ function List({ events, notice, onEdit, onNew, onDelete }: { events: ApiEvent[];
         <Button onClick={onNew}><Plus /> Neues Event</Button>
       </div>
       <p role="status" className="mb-4 min-h-6 text-sm font-semibold text-accent-text">{notice}</p>
-      {sorted.length === 0 ? (
-        <p className="rounded-3xl border border-line bg-surface p-8 text-muted">Noch keine Events. Lege das erste Event an. Solange keines veröffentlicht ist, zeigt die Website einen Hinweis statt des Programms.</p>
+
+      <h3 className="mb-3 text-lg font-extrabold">Kommende Events <span className="text-muted">({upcoming.length})</span></h3>
+      {upcoming.length === 0 ? (
+        <p className="rounded-3xl border border-line bg-surface p-8 text-muted">
+          Keine kommenden Events. Die Website zeigt deshalb einen Hinweis statt des Programms. Lege ein neues Event an.
+        </p>
       ) : (
         <ul className="grid gap-3">
-          {sorted.map((e) => (
-            <li key={e.id} className="flex flex-wrap items-center gap-4 rounded-3xl border border-line bg-surface p-4 sm:p-5">
-              <time dateTime={e.start} className="grid size-16 shrink-0 place-items-center rounded-2xl bg-surface-2 text-center leading-none">
-                <span>
-                  <span className="block font-display font-black text-2xl">{fmtDay(e.start)}</span>
-                  <span className="block text-[11px] font-bold uppercase text-muted">{fmtMonth(e.start)}</span>
-                </span>
-              </time>
-              <div className="min-w-0 flex-1 basis-48">
-                <h3 className="truncate text-lg font-extrabold">{e.title}</h3>
-                <p className="text-sm text-muted">{fmtWeekday(e.start)} · {e.timeLabel || 'Zeit offen'}</p>
-                <div className="mt-2"><StatusBadge status={e.status} /></div>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => onEdit(e)} aria-label={`${e.title} bearbeiten`}><Pencil /> Bearbeiten</Button>
-                <Button variant="outline" size="icon" onClick={() => onDelete(e)} aria-label={`${e.title} löschen`}><Trash2 /></Button>
-              </div>
-            </li>
-          ))}
+          {upcoming.map((e) => <EventRow key={e.id} e={e} archived={false} onEdit={onEdit} onDelete={onDelete} />)}
         </ul>
+      )}
+
+      {archive.length > 0 && (
+        <details className="group mt-10" open={upcoming.length === 0}>
+          <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 text-lg font-extrabold [&::-webkit-details-marker]:hidden">
+            <Archive aria-hidden className="size-5 text-muted" /> Archiv <span className="text-muted">({archive.length})</span>
+            <span aria-hidden className="ml-auto text-sm font-bold uppercase tracking-wider text-muted group-open:hidden">Anzeigen</span>
+            <span aria-hidden className="ml-auto hidden text-sm font-bold uppercase tracking-wider text-muted group-open:inline">Ausblenden</span>
+          </summary>
+          <p className="mb-4 mt-1 text-sm text-muted">Events werden 12 Stunden nach Beginn archiviert. Sie bleiben gespeichert und ihre Seite ist per Link weiter erreichbar, erscheinen aber nicht mehr im Programm.</p>
+          <ul className="grid gap-3">
+            {archive.map((e) => <EventRow key={e.id} e={e} archived onEdit={onEdit} onDelete={onDelete} />)}
+          </ul>
+        </details>
       )}
     </>
   );
