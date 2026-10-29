@@ -95,7 +95,7 @@ export function Events() {
   const spans = events ? layout(events) : [];
   return (
     <section id="programm" className="mx-auto max-w-7xl px-4 py-24 sm:px-6">
-      <SectionHead eyebrow="Programm" title="Diese Woche im Hive">
+      <SectionHead eyebrow="Programm" title="Die nächsten Events">
         Donnerstags wird das Hive zum dihive. Freitag und Samstag gehören den grossen Nächten.
       </SectionHead>
       {events === null ? (

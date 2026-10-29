@@ -55,7 +55,16 @@ als Static Assets aus; der Worker läuft nur für `/api/*` und `/img/*`
   die Events aus `src/data/club.ts` (`EVENTS`) an, alle veröffentlicht. Danach
   gilt nur noch KV. `EVENTS` bleibt als Fallback, wenn das Backend nicht
   erreichbar ist (z. B. `npm run dev` ohne Worker oder offline).
-- **Öffentlich:** `GET /api/events` (nur veröffentlichte), `GET /img/<id>` (Flyer,
+- **Archiv:** Ein Event gilt 12 Stunden nach seinem Beginn als vorbei
+  (`src/lib/archive.ts`, gleiche Regel in Worker, Seite und Admin; Clubnächte laufen
+  über Mitternacht). Archivierte Events bleiben in KV, erscheinen aber nicht mehr im
+  Programm und nicht in `GET /api/events`; ihre Seite bleibt per Link erreichbar
+  (`GET /api/events/<id>`, mit Hinweis „bereits stattgefunden“, ohne Kalender und
+  Ticket-Link). Das Archivieren passiert beim Abruf, es gibt keinen Zeitplan. Der
+  Hero zeigt das nächste noch nicht begonnene Event, sonst ein laufendes, sonst den
+  Hinweis „Neues Programm folgt bald“. Im Admin stehen „Kommende Events“ und „Archiv“;
+  ein Event lässt sich durch Ändern des Datums wieder aktivieren.
+- **Öffentlich:** `GET /api/events` (nur veröffentlichte, nicht archivierte, nach Beginn sortiert), `GET /img/<id>` (Flyer,
   nur bei veröffentlichten Events, sonst 404; Browser-Cache 60 s).
 - **DJs & Residents:** DJs werden im Admin (Tab „DJs“) erfasst, entweder als normaler
   DJ (nur für Line-ups) oder als **Resident**. Residents erscheinen automatisch im

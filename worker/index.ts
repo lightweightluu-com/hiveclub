@@ -1,3 +1,4 @@
+import { isArchived } from '../src/lib/archive';
 import { EVENTS, RESIDENTS, type ClubEvent, type LineupItem } from '../src/data/club';
 
 interface Env {
@@ -428,9 +429,19 @@ export default {
 
       if (path[0] === 'api') {
         if (path[1] === 'events' && path.length === 2 && request.method === 'GET') {
-          const list = (await allEvents(env)).filter((e) => e.status === 'published');
+          // Vergangene Events sind archiviert und erscheinen hier nicht mehr (automatisch, ohne Zeitplan).
+          const now = Date.now();
+          const list = (await allEvents(env))
+            .filter((e) => e.status === 'published' && !isArchived(e.start, now))
+            .sort((x, y) => Date.parse(x.start) - Date.parse(y.start));
           const djs = await readDjs(env);
           return json({ events: list.map((e) => publicShape(e, djs)) }, 200, { 'cache-control': 'no-cache' });
+        }
+        if (path[1] === 'events' && path.length === 3 && request.method === 'GET') {
+          // Einzelnes Event, auch ein archiviertes: alte Links und geteilte Adressen sollen weiter funktionieren.
+          const event = /^[0-9a-f]{16}$/.test(path[2]) ? await getEvent(env, path[2]) : null;
+          if (!event || event.status !== 'published') return fail(404, 'Event nicht gefunden.');
+          return json({ event: { ...publicShape(event, await readDjs(env)), archived: isArchived(event.start) } }, 200, { 'cache-control': 'no-cache' });
         }
         if (path[1] === 'residents' && path.length === 2 && request.method === 'GET') {
           const residents = (await readDjs(env)).filter((d) => d.resident).sort(byName).map((d) => d.name);

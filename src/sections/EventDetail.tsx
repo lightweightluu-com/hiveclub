@@ -9,7 +9,7 @@ import { buildIcs } from '@/lib/ics';
 import { imageUrl, type PublicEvent } from '@/lib/events-api';
 import { fmtDay, fmtLongDate, fmtMonth } from '@/lib/format';
 import { eventPath, handleLinkClick } from '@/lib/router';
-import { useEvents } from '@/lib/use-events';
+import { useEvent, useEvents } from '@/lib/use-events';
 
 const ICON = { club: Music2, wellness: Flower2, dance: Zap } as const;
 const KIND = { club: 'Club', wellness: 'Wellness', dance: 'Tanzen' } as const;
@@ -115,13 +115,20 @@ function Detail({ e, others }: { e: PublicEvent; others: PublicEvent[] }) {
         </p>
       </header>
 
+      {e.archived && (
+        <p role="note" className="mt-6 rounded-2xl border border-line bg-surface p-4 text-base font-bold">
+          Dieses Event hat bereits stattgefunden. Das aktuelle Programm findest du unter{' '}
+          <a href="/#programm" onClick={handleLinkClick} className="text-accent-text underline underline-offset-4">Programm</a>.
+        </p>
+      )}
+
       <div className="mt-8 flex flex-wrap gap-3">
-        {e.link && (
+        {e.link && !e.archived && (
           <Button asChild>
             <a href={e.link} target="_blank" rel="noreferrer noopener"><Ticket /> Tickets &amp; Infos</a>
           </Button>
         )}
-        <Button variant="outline" onClick={downloadIcs}><CalendarPlus /> Zum Kalender</Button>
+        {!e.archived && <Button variant="outline" onClick={downloadIcs}><CalendarPlus /> Zum Kalender</Button>}
         <Button variant="outline" onClick={share}>{copied ? <Check /> : <Share2 />} {copied ? 'Link kopiert' : 'Teilen'}</Button>
       </div>
       <p role="status" className="sr-only">{copied ? 'Link in die Zwischenablage kopiert.' : ''}</p>
@@ -197,8 +204,9 @@ function Detail({ e, others }: { e: PublicEvent; others: PublicEvent[] }) {
 }
 
 export function EventDetail({ id }: { id: string }) {
-  const events = useEvents();
-  if (events === null) {
+  const event = useEvent(id);
+  const upcomingEvents = useEvents();
+  if (event === undefined || upcomingEvents === null) {
     return (
       <div aria-busy="true" aria-label="Event wird geladen" className="mx-auto max-w-4xl px-4 pt-28 sm:px-6">
         <div className="aspect-video animate-pulse rounded-3xl border border-line bg-surface" />
@@ -206,10 +214,7 @@ export function EventDetail({ id }: { id: string }) {
       </div>
     );
   }
-  const event = events.find((e) => e.id === id);
-  if (!event) return <NotFound />;
-  const now = Date.now();
-  const rest = events.filter((e) => e.id !== id);
-  const upcoming = rest.filter((e) => +new Date(e.start) >= now);
-  return <Detail key={event.id} e={event} others={(upcoming.length ? upcoming : rest).slice(0, 3)} />;
+  if (event === null) return <NotFound />;
+  const others = upcomingEvents.filter((e) => e.id !== id).slice(0, 3);
+  return <Detail key={event.id} e={event} others={others} />;
 }
